@@ -13,8 +13,8 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smallstep/pkcs7 v0.2.1
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/viper v1.20.1
-	github.com/stretchr/testify v1.11.0
+	github.com/spf13/viper v1.21.0
+	github.com/stretchr/testify v1.11.1
 	github.com/zricethezav/gitleaks/v8 v8.28.0
 	go.uber.org/dig v1.19.0
 	golang.org/x/crypto v0.42.0
@@ -70,7 +70,7 @@ require (
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/fatih/semgroup v1.3.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fsnotify/fsnotify v1.8.0 // indirect
+	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/gitleaks/go-gitdiff v0.9.1 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
@@ -114,20 +114,20 @@ require (
 	github.com/opencontainers/runtime-spec v1.2.1 // indirect
 	github.com/opencontainers/selinux v1.11.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
-	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
-	github.com/sagikazarmark/locafero v0.8.0 // indirect
+	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/scylladb/go-set v1.0.3-0.20200225121959-cc7b2070d91e // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/sorairolake/lzip-go v0.3.5 // indirect
-	github.com/sourcegraph/conc v0.3.0 // indirect
-	github.com/spf13/afero v1.14.0 // indirect
-	github.com/spf13/cast v1.7.1 // indirect
-	github.com/spf13/pflag v1.0.7 // indirect
+	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
+	github.com/spf13/afero v1.15.0 // indirect
+	github.com/spf13/cast v1.10.0 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/sylabs/sif/v2 v2.22.0 // indirect
 	github.com/sylabs/squashfs v1.0.6 // indirect
@@ -148,7 +148,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.36.0 // indirect
 	go.opentelemetry.io/otel/trace v1.36.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.4.0 // indirect
-	go.uber.org/multierr v1.11.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/net v0.43.0 // indirect
