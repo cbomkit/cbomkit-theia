@@ -1,0 +1,18 @@
+# OpenSSL example configuration file
+# This is mostly being used for generation of certificate requests.
+
+# System defaults
+[system_default_sect]
+MinProtocol = TLSv1.2
+MaxProtocol = TLSv1.3
+CipherString = DEFAULT@SECLEVEL=2
+Options = ServerPreference,PrioritizeChaCha
+
+# Default CA section
+[ca_default]
+CAfile = /etc/ssl/certs/ca-bundle.crt
+CApath = /etc/ssl/certs
+
+# Request section
+[req]
+default_md = sha256

@@ -18,17 +18,19 @@ package scanner
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"slices"
+
 	"github.com/IBM/cbomkit-theia/provider/cyclonedx"
 	"github.com/IBM/cbomkit-theia/provider/filesystem"
 	pluginpackage "github.com/IBM/cbomkit-theia/scanner/plugins"
 	"github.com/IBM/cbomkit-theia/scanner/plugins/certificates"
 	"github.com/IBM/cbomkit-theia/scanner/plugins/javasecurity"
+	"github.com/IBM/cbomkit-theia/scanner/plugins/opensslconf"
 	"github.com/IBM/cbomkit-theia/scanner/plugins/secrets"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"io"
-	"os"
-	"slices"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"go.uber.org/dig"
@@ -57,6 +59,7 @@ func GetAllPluginConstructors() map[string]pluginpackage.PluginConstructor {
 		"certificates": certificates.NewCertificatePlugin,
 		"javasecurity": javasecurity.NewJavaSecurityPlugin,
 		"secrets":      secrets.NewSecretsPlugin,
+		"opensslconf":  opensslconf.NewOpenSSLConfPlugin,
 	}
 }
 
