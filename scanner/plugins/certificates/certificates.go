@@ -18,13 +18,14 @@ package certificates
 
 import (
 	"encoding/pem"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/IBM/cbomkit-theia/provider/cyclonedx"
 	"github.com/IBM/cbomkit-theia/scanner/x509"
 	log "github.com/sirupsen/logrus"
 	"github.com/smallstep/pkcs7"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/IBM/cbomkit-theia/provider/filesystem"
 	scannererrors "github.com/IBM/cbomkit-theia/scanner/errors"

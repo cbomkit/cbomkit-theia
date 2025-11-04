@@ -18,7 +18,6 @@ package opensslconf
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"path/filepath"
 	"regexp"
@@ -30,6 +29,7 @@ import (
 	"github.com/IBM/cbomkit-theia/provider/filesystem"
 	"github.com/IBM/cbomkit-theia/scanner/plugins"
 	"github.com/IBM/cbomkit-theia/scanner/tls"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -89,7 +89,7 @@ func (p *Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 			Type:        cdx.ComponentTypeFile,
 			Name:        filepath.Base(f.path),
 			Description: "OpenSSL configuration",
-			BOMRef:      fmt.Sprintf("opensslconf:%s", f.path),
+			BOMRef:      uuid.New().String(),
 			Properties:  &props,
 			Evidence:    &cdx.Evidence{Occurrences: &[]cdx.EvidenceOccurrence{{Location: f.path}}},
 		}

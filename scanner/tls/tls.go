@@ -25,6 +25,7 @@ import (
 	"sync"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/google/uuid"
 )
 
 // BuildTLSProtocolComponents constructs a TLS protocol component and its dependency map.
@@ -62,7 +63,7 @@ func BuildTLSProtocolComponents(version string, suiteNames []string, srcPath str
 		// Build identifiers from hex bytes
 		identifiers := make([]string, 0)
 		if cs.HexByte1 != "" && cs.HexByte2 != "" {
-			identifiers = append(identifiers, cs.HexByte1+cs.HexByte2)
+			identifiers = append(identifiers, cs.HexByte1, cs.HexByte2)
 		}
 
 		// Extract algorithms from the cipher suite fields
@@ -92,7 +93,7 @@ func BuildTLSProtocolComponents(version string, suiteNames []string, srcPath str
 	}
 
 	// protocol component
-	protoRef := cdx.BOMReference("crypto/protocol/tls@" + version)
+	protoRef := cdx.BOMReference(uuid.New().String())
 	protoName := "TLSv" + version
 	refsCopy := make([]cdx.BOMReference, len(refOrder))
 	copy(refsCopy, refOrder)
@@ -112,7 +113,7 @@ func BuildTLSProtocolComponents(version string, suiteNames []string, srcPath str
 		Evidence: &cdx.Evidence{Occurrences: &[]cdx.EvidenceOccurrence{{Location: srcPath}}},
 	}
 
-	// dependencies: protocol depends on all algorithms; and composed signature depends on hash if applicable
+	// dependencies: protocol depends on all algorithms; and the composed signature depends on hash if applicable
 	depMap := make(map[cdx.BOMReference][]string)
 	if len(refOrder) > 0 {
 		depMap[protoRef] = make([]string, 0, len(refOrder))
@@ -126,10 +127,7 @@ func BuildTLSProtocolComponents(version string, suiteNames []string, srcPath str
 			if strings.Contains(strings.ToUpper(comp.Name), "WITH") {
 				parts := strings.Split(strings.ToUpper(comp.Name), "WITH")
 				if len(parts) >= 1 {
-					h := strings.TrimSpace(parts[0])
-					if href := algorithmRefForName(h); href != "" {
-						depMap[cdx.BOMReference(comp.BOMRef)] = append(depMap[cdx.BOMReference(comp.BOMRef)], href)
-					}
+					depMap[cdx.BOMReference(comp.BOMRef)] = append(depMap[cdx.BOMReference(comp.BOMRef)], uuid.New().String())
 				}
 			}
 		}
@@ -227,15 +225,9 @@ func extractAlgorithmsFromSuite(cs *cipherSuite) []string {
 	return algs
 }
 
-func algorithmRefForName(name string) string {
-	key := strings.ToLower(strings.ReplaceAll(name, " ", ""))
-	key = strings.ReplaceAll(key, "_", "-")
-	return fmt.Sprintf("crypto/algorithm/%s", key)
-}
-
 func makeAlgorithmComponent(name, srcPath string) cdx.Component {
 	upper := strings.ToUpper(name)
-	ref := algorithmRefForName(name)
+	ref := uuid.New().String()
 	comp := cdx.Component{Type: cdx.ComponentTypeCryptographicAsset, Name: normalizedAlgoName(upper), BOMRef: ref,
 		CryptoProperties: &cdx.CryptoProperties{AssetType: cdx.CryptoAssetTypeAlgorithm, AlgorithmProperties: &cdx.CryptoAlgorithmProperties{}},
 		Evidence:         &cdx.Evidence{Occurrences: &[]cdx.EvidenceOccurrence{{Location: srcPath}}},
@@ -249,10 +241,6 @@ func makeAlgorithmComponent(name, srcPath string) cdx.Component {
 			ap.Mode = cdx.CryptoAlgorithmModeGCM
 		} else if strings.Contains(upper, "CBC") {
 			ap.Mode = cdx.CryptoAlgorithmModeCBC
-		}
-		// extract size
-		if i := strings.IndexAny(upper, "0123456789"); i != -1 {
-			ap.ParameterSetIdentifier = upper[i:]
 		}
 	case strings.HasPrefix(upper, "SHA"):
 		ap.Primitive = cdx.CryptoPrimitiveHash
@@ -278,16 +266,10 @@ func normalizedAlgoName(upper string) string {
 	// e.g., AES256-CBC, SHA256, SHA256withDSA
 	if strings.HasPrefix(upper, "AES") {
 		size := ""
-		mode := ""
 		if i := strings.IndexAny(upper, "0123456789"); i != -1 {
 			size = upper[i:]
 		}
-		if strings.Contains(upper, "GCM") {
-			mode = "-GCM"
-		} else if strings.Contains(upper, "CBC") {
-			mode = "-CBC"
-		}
-		return fmt.Sprintf("AES%s%s", size, mode)
+		return fmt.Sprintf("AES%s", size)
 	}
 	if strings.HasPrefix(upper, "SHA") {
 		// plain hash or signature naming

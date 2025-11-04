@@ -18,10 +18,11 @@ package javasecurity
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/IBM/cbomkit-theia/provider/filesystem"
 	scannererrors "github.com/IBM/cbomkit-theia/scanner/errors"
