@@ -57,6 +57,9 @@ Adds a confidence level (0-1) to the CBOM components to show how likely it is th
 > "secrets": Secret Detection Plugin
 Find secrets & keys (private, public and secret keys)
 
+> "opensslconf": OpenSSL Configuration Plugin
+Reads OpenSSL configuration files and checks cipher suites and algorithm configuration
+
 Usage:
   cbomkit-theia [command]
 
@@ -111,6 +114,7 @@ By default, all available plugins are enabled:
 - certificates
 - javasecurity
 - secrets (private, public and secret keys)
+- opensslconf
 
 **Important Note:** The application is configured to ensure all plugins are always available. If you manually edit the configuration file to exclude specific plugins, CBOMkit-theia will detect this and automatically restore all plugins to their default enabled state on the next run. If you need to disable specific plugins for a particular run, use the `-p` flag instead of modifying the config file:
 
@@ -127,7 +131,10 @@ By default, all available plugins are enabled:
     - Reads the `jdk.tls.disabledAlgorithms` property and checks if any of the algorithms are used in the given CBOM
     - Based on the results, a confidence level (`confidence_level`) is assigned to the restricted (or not restricted) algorithms in the CBOM
       - A higher confidence level means that component is more likely to be executable
-  - X.509 Certificate Plugin:
+  - OpenSSL Configuration Plugin:
+    - Searches the filesystem for OpenSSL configuration files (e.g., `openssl.cnf`)
+    - Reads cipher suite configurations and algorithm configurations
+  - X.509 Certificate Plugin:_
     - Search the filesystem for X.509 certificates
     - Add the certificates to the CBOM, as well as signature algorithms, public keys and public key algorithms
   - Secret Plugin:
