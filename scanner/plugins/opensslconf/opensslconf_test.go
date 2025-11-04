@@ -73,7 +73,7 @@ func Test_UpdateBOM_adds_component(t *testing.T) {
 			}
 			assert.Equal(t, "TLSv1.2", props["theia:openssl:MinProtocol"])
 			assert.Equal(t, "TLSv1.3", props["theia:openssl:MaxProtocol"])
-			assert.Equal(t, "DEFAULT@SECLEVEL=2", props["theia:openssl:CipherString"])
+			assert.Equal(t, "ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384", props["theia:openssl:CipherString"])
 			assert.Equal(t, "ServerPreference,PrioritizeChaCha", props["theia:openssl:Options"])
 			assert.Equal(t, "/etc/ssl/certs/ca-bundle.crt", props["theia:openssl:CAfile"])
 			assert.Equal(t, "/etc/ssl/certs", props["theia:openssl:CApath"])

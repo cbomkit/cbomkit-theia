@@ -5,7 +5,8 @@
 [system_default_sect]
 MinProtocol = TLSv1.2
 MaxProtocol = TLSv1.3
-CipherString = DEFAULT@SECLEVEL=2
+CipherString = ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384
+Ciphersuites = TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256
 Options = ServerPreference,PrioritizeChaCha
 
 # Default CA section
