@@ -69,6 +69,7 @@ func (p *Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 				return nil
 			}
 			found = append(found, configFinding{path: path, settings: settings})
+			log.WithFields(log.Fields{"file": path}).Info("OpenSSL config detected")
 		}
 		return nil
 	}); err != nil {
