@@ -20,8 +20,9 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/IBM/cbomkit-theia/scanner/key"
 	"slices"
+
+	"github.com/IBM/cbomkit-theia/scanner/key"
 
 	"golang.org/x/crypto/ssh"
 

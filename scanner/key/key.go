@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
+
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/IBM/cbomkit-theia/scanner/errors"
 	"github.com/google/uuid"
