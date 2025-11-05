@@ -19,6 +19,7 @@ package opensslconf
 import (
 	"bufio"
 	"io"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -86,6 +87,19 @@ func (p *Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 	for _, f := range found {
 		// 1) Add openssl.cnf file component with properties
 		props := extractRelevantProperties(f.settings)
+
+		// If CipherString uses DEFAULT[@SECLEVEL=X], attempt to expand it into a concrete list
+		if opensslNames, expanded := expandDefaultCipherString(f.settings); expanded && len(opensslNames) > 0 {
+			// replace the property value with expanded colon-separated list for transparency
+			joined := strings.Join(opensslNames, ":")
+			for i := range props {
+				if props[i].Name == "theia:openssl:CipherString" {
+					props[i].Value = joined
+					break
+				}
+			}
+		}
+
 		fileComp := cdx.Component{
 			Type:        cdx.ComponentTypeFile,
 			Name:        filepath.Base(f.path),
@@ -99,6 +113,27 @@ func (p *Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 		// 2) Build protocol + cipher suite components (if possible)
 		versions := detectTLSVersions(f.settings)
 		suites := detectCipherSuiteNames(f.settings)
+		// If default cipher string was detected, map expanded OpenSSL cipher names -> TLS_* and add to suites
+		if opensslNames, expanded := expandDefaultCipherString(f.settings); expanded && len(opensslNames) > 0 {
+			mapped := tls.MapOpenSSLNamesToTLS(opensslNames)
+			if len(mapped) > 0 {
+				// merge and deduplicate
+				set := make(map[string]struct{}, len(suites)+len(mapped))
+				for _, s := range suites {
+					set[s] = struct{}{}
+				}
+				for _, s := range mapped {
+					set[s] = struct{}{}
+				}
+				merged := make([]string, 0, len(set))
+				for s := range set {
+					merged = append(merged, s)
+				}
+				sort.Strings(merged)
+				suites = merged
+			}
+		}
+
 		if len(versions) == 0 || len(suites) == 0 {
 			continue
 		}
@@ -260,6 +295,43 @@ func detectCipherSuiteNames(cfg map[string]map[string]string) []string {
 	sort.Strings(names)
 	return names
 }
+
+// expandDefaultCipherString detects if the config sets CipherString to DEFAULT[@SECLEVEL=n]
+// and tries to expand it to a concrete list of OpenSSL cipher names using the local openssl binary.
+// It returns the list of OpenSSL cipher names and true if expansion was attempted, otherwise false.
+func expandDefaultCipherString(cfg map[string]map[string]string) ([]string, bool) {
+	preferredSections := []string{"system_default_sect", "default", "openssl_init"}
+	if v, ok := getFirstKey(cfg, preferredSections, "CipherString"); ok {
+		val := strings.TrimSpace(v)
+		if defaultCipherStringRe.MatchString(val) {
+			// try openssl ciphers DEFAULT
+			out, err := exec.Command("openssl", "ciphers", "DEFAULT").Output()
+			if err == nil {
+				text := strings.TrimSpace(string(out))
+				if text != "" {
+					// split by colon and whitespace
+					fields := strings.FieldsFunc(text, func(r rune) bool { return r == ':' || r == '\n' || r == '\r' || r == '\t' || r == ' ' })
+					list := make([]string, 0, len(fields))
+					for _, f := range fields {
+						ff := strings.TrimSpace(f)
+						if ff != "" {
+							list = append(list, ff)
+						}
+					}
+					if len(list) > 0 {
+						sort.Strings(list)
+						return list, true
+					}
+				}
+			}
+			// return empty list
+			return []string{}, true
+		}
+	}
+	return nil, false
+}
+
+var defaultCipherStringRe = regexp.MustCompile(`(?i)^DEFAULT(?:@SECLEVEL=\d+)?$`)
 
 func extractRelevantProperties(cfg map[string]map[string]string) []cdx.Property {
 	properties := make([]cdx.Property, 0)

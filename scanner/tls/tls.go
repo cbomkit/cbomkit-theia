@@ -148,8 +148,9 @@ var (
 )
 
 type cipherDB struct {
-	Ciphersuites []map[string]cipherSuite `json:"ciphersuites"`
-	byName       map[string]*cipherSuite
+	Ciphersuites   []map[string]cipherSuite `json:"ciphersuites"`
+	byName         map[string]*cipherSuite
+	byOpenSSLName  map[string]string
 }
 
 type cipherSuite struct {
@@ -178,12 +179,19 @@ func loadCipherSuitesDB() error {
 			return
 		}
 		db.byName = make(map[string]*cipherSuite)
+		db.byOpenSSLName = make(map[string]string)
 		for i := range db.Ciphersuites {
 			csMap := db.Ciphersuites[i]
 			for name, cs := range csMap {
 				// Store a copy of the cipher suite with the name as key
 				csCopy := cs
 				db.byName[name] = &csCopy
+				if cs.OpenSSLName != "" {
+					upper := strings.ToUpper(strings.TrimSpace(cs.OpenSSLName))
+					if upper != "" {
+						db.byOpenSSLName[upper] = name
+					}
+				}
 			}
 		}
 		cipherSuiteDB = db
@@ -260,6 +268,31 @@ func makeAlgorithmComponent(name, srcPath string) cdx.Component {
 		comp.CryptoProperties.OID = "2.16.840.1.101.3.4.3.2"
 	}
 	return comp
+}
+
+// MapOpenSSLNamesToTLS maps OpenSSL cipher names (e.g., "ECDHE-ECDSA-AES256-GCM-SHA384")
+// to standard TLS_* names used by our DB (e.g., "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384").
+// Unknown names are ignored. The result is deduplicated and sorted.
+func MapOpenSSLNamesToTLS(opensslNames []string) []string {
+	if err := loadCipherSuitesDB(); err != nil {
+		return nil
+	}
+	set := make(map[string]struct{})
+	out := make([]string, 0)
+	for _, n := range opensslNames {
+		upper := strings.ToUpper(strings.TrimSpace(n))
+		if upper == "" {
+			continue
+		}
+		if tlsName, ok := cipherSuiteDB.byOpenSSLName[upper]; ok {
+			if _, exists := set[tlsName]; !exists {
+				set[tlsName] = struct{}{}
+				out = append(out, tlsName)
+			}
+		}
+	}
+	sort.Strings(out)
+	return out
 }
 
 func normalizedAlgoName(upper string) string {
