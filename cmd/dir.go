@@ -17,9 +17,10 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/IBM/cbomkit-theia/provider/filesystem"
 	"github.com/IBM/cbomkit-theia/scanner"

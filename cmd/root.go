@@ -18,9 +18,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/IBM/cbomkit-theia/scanner"
 	log "github.com/sirupsen/logrus"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -157,7 +158,7 @@ func initConfig() {
 		// Config file exists - ensure all plugins are in the config
 		configPlugins := viper.GetStringSlice("plugins")
 		missingPlugins := false
-		
+
 		// Check if any plugin is missing
 		for _, plugin := range allPlugins {
 			found := false
@@ -172,7 +173,7 @@ func initConfig() {
 				break
 			}
 		}
-		
+
 		// Update config if plugins are missing
 		if missingPlugins {
 			viper.Set("plugins", allPlugins)
