@@ -1,4 +1,4 @@
-# Copyright 2024 IBM
+# Copyright 2024 PQCA
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ ENV GOINSECURE=*
 ENV GONOSUMDB=*
 
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod download -x
 COPY . ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./cbomkit-theia

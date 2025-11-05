@@ -7,7 +7,7 @@ This document captures project-specific knowledge to speed up advanced developme
 
 - Go toolchain
   - Required Go version per `go.mod`: `go 1.24`. We successfully ran tests with Go `1.25.3`. Keep `GO111MODULE=on` (default in recent Go).
-  - Module path: `github.com/IBM/cbomkit-theia`.
+  - Module path: `github.com/cbomkit/cbomkit-theia`.
 
 - Build
   - Fast local build (no CGO required for core binary):

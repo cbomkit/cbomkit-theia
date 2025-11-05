@@ -1,11 +1,11 @@
 # CBOMkit-theia
 
-[![GitHub License](https://img.shields.io/github/license/PQCA/cbomkit-theia)](https://opensource.org/licenses/Apache-2.0)
+[![GitHub License](https://img.shields.io/github/license/cbomkit/cbomkit-theia)](https://opensource.org/licenses/Apache-2.0)
 
 This repository contains CBOMkit-theia: a tool that detects cryptographic assets in container images as well as directories and generates [CBOM](https://cyclonedx.org/capabilities/cbom/).
 
 > [!NOTE] 
-> CBOMkit-theia is part of [CBOMkit](https://github.com/PQCA/cbomkit) and meant to run in conjunction with the [Sonar Cryptography Plugin](https://github.com/PQCA/sonar-cryptography) donated to PQCA by IBM Research.
+> CBOMkit-theia is part of [CBOMkit](https://github.com/cbomkit) and meant to run in conjunction with the [Sonar Cryptography Plugin](https://github.com/cbomkit/sonar-cryptography).
 
 ```
  ██████╗██████╗  ██████╗ ███╗   ███╗██╗  ██╗██╗████████╗████████╗██╗  ██╗███████╗██╗ █████╗ 
@@ -16,10 +16,10 @@ This repository contains CBOMkit-theia: a tool that detects cryptographic assets
  ╚═════╝╚═════╝  ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝   ╚═╝      ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝╚═╝  ╚═╝ by IBM Research
 
 CBOMkit-theia analyzes cryptographic assets in a container image or directory.
-It is part of cbomkit (https://github.com/PQCA/cbomkit) donated to PQCA by IBM Research.
+It is part of cbomkit (https://github.com/cbomkit/cbomkit) donated to PQCA by IBM Research.
 
 --> Disclaimer: CBOMkit-theia does *not* perform source code scanning <--
---> Use https://github.com/PQCA/sonar-cryptography for source code scanning <--
+--> Use https://github.com/cbomkit/sonar-cryptography for source code scanning <--
 
 Features
 - Find certificates in your image/directory
@@ -73,7 +73,7 @@ Flags:
   -b, --bom string        BOM file to be verified and enriched
       --config string     config file (default is $HOME/.cbomkit-theia.yaml)
   -h, --help              help for cbomkit-theia
-  -p, --plugins strings   list of plugins to use (default [certificates,javasecurity,secrets,keys,vex])
+  -p, --plugins strings   list of plugins to use (default [certificates,javasecurity,secrets,opensslconf,keys,vex])
       --schema string     BOM schema to validate the given BOM (default "provider/cyclonedx/bom-1.6.schema.json")
 
 Use "cbomkit-theia [command] --help" for more information about a command.
@@ -151,7 +151,7 @@ CBOMkit-theia performs several filesystem reads based on the user input and may 
 
 If you'd like to contribute to CBOMkit-theia, please take a look at our [contribution guidelines](CONTRIBUTING.md). By participating, you are expected to uphold our [code of conduct](CODE_OF_CONDUCT.md).
 
-We use [GitHub issues](https://github.com/PQCA/cbomkit-theia/issues) for tracking requests and bugs. For questions start a discussion using [GitHub Discussions](https://github.com/PQCA/cbomkit-theia/discussions).
+We use [GitHub issues](https://github.com/cbomkit/cbomkit-theia/issues) for tracking requests and bugs. For questions start a discussion using [GitHub Discussions](https://github.com/cbomkit/cbomkit-theia/discussions).
 
 ## License
 

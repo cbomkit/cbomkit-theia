@@ -1,4 +1,4 @@
-// Copyright 2024 IBM
+// Copyright 2024 PQCA
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ func (scanner *scanner) addMetadata(bom *cdx.BOM) {
 
 	*bom.Metadata.Tools.Services = append(*bom.Metadata.Tools.Services, cdx.Service{
 		Provider: &cdx.OrganizationalEntity{
-			Name: "IBM",
+			Name: "PQCA",
 		},
 		Name:     "cbomkit-theia",
 		Version:  Version,
