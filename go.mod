@@ -1,4 +1,4 @@
-module github.com/IBM/cbomkit-theia
+module github.com/cbomkit/cbomkit-theia
 
 go 1.24.1
 

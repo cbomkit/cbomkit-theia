@@ -19,15 +19,15 @@ package main
 import (
 	"bytes"
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/IBM/cbomkit-theia/provider/cyclonedx"
+	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
-	"github.com/IBM/cbomkit-theia/scanner"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	"github.com/cbomkit/cbomkit-theia/scanner"
 	"go.uber.org/dig"
 )
 

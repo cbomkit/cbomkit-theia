@@ -21,9 +21,9 @@ import (
 	"github.com/spf13/viper"
 	"strings"
 
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
-	"github.com/IBM/cbomkit-theia/scanner/pem"
-	"github.com/IBM/cbomkit-theia/scanner/plugins"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	"github.com/cbomkit/cbomkit-theia/scanner/pem"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/zricethezav/gitleaks/v8/detect"

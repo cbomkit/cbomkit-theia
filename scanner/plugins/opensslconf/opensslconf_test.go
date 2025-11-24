@@ -22,7 +22,7 @@ import (
 	testing "testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
 	"github.com/stretchr/testify/assert"
 )
 

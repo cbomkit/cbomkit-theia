@@ -19,7 +19,7 @@ package plugins
 import (
 	"strings"
 
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 )

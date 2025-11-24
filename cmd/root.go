@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/IBM/cbomkit-theia/scanner"
+	"github.com/cbomkit/cbomkit-theia/scanner"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"

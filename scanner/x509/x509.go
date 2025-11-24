@@ -23,8 +23,8 @@ import (
         "strings"
 	"time"
 
-	"github.com/IBM/cbomkit-theia/scanner/errors"
-	"github.com/IBM/cbomkit-theia/scanner/key"
+	"github.com/cbomkit/cbomkit-theia/scanner/errors"
+	"github.com/cbomkit/cbomkit-theia/scanner/key"
 
 	"github.com/google/uuid"
 

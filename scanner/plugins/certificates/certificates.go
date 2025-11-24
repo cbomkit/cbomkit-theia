@@ -22,15 +22,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/IBM/cbomkit-theia/provider/cyclonedx"
-	"github.com/IBM/cbomkit-theia/scanner/x509"
+	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
+	"github.com/cbomkit/cbomkit-theia/scanner/x509"
 	log "github.com/sirupsen/logrus"
 	"github.com/smallstep/pkcs7"
 
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
-	scannererrors "github.com/IBM/cbomkit-theia/scanner/errors"
-	pemlib "github.com/IBM/cbomkit-theia/scanner/pem"
-	"github.com/IBM/cbomkit-theia/scanner/plugins"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	scannererrors "github.com/cbomkit/cbomkit-theia/scanner/errors"
+	pemlib "github.com/cbomkit/cbomkit-theia/scanner/pem"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 )

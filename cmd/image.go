@@ -22,9 +22,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/IBM/cbomkit-theia/provider/docker"
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
-	"github.com/IBM/cbomkit-theia/scanner"
+	"github.com/cbomkit/cbomkit-theia/provider/docker"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	"github.com/cbomkit/cbomkit-theia/scanner"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"

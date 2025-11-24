@@ -18,14 +18,14 @@ package javasecurity
 
 import (
 	"fmt"
-	"github.com/IBM/cbomkit-theia/provider/cyclonedx"
-	"github.com/IBM/cbomkit-theia/scanner/confidenceLevel"
-	"github.com/IBM/cbomkit-theia/utils"
+	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
+	"github.com/cbomkit/cbomkit-theia/scanner/confidenceLevel"
+	"github.com/cbomkit/cbomkit-theia/utils"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 
-	scannererrors "github.com/IBM/cbomkit-theia/scanner/errors"
+	scannererrors "github.com/cbomkit/cbomkit-theia/scanner/errors"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 )

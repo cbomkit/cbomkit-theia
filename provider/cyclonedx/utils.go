@@ -18,7 +18,7 @@ package cyclonedx
 
 import (
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/IBM/cbomkit-theia/utils"
+	"github.com/cbomkit/cbomkit-theia/utils"
 )
 
 func GetByBomRef(ref cdx.BOMReference, components *[]cdx.Component) *cdx.Component {

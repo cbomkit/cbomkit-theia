@@ -24,9 +24,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
-	scannererrors "github.com/IBM/cbomkit-theia/scanner/errors"
-	"github.com/IBM/cbomkit-theia/scanner/plugins"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	scannererrors "github.com/cbomkit/cbomkit-theia/scanner/errors"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	v1 "github.com/google/go-containerregistry/pkg/v1"

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/IBM/cbomkit-theia/scanner/key"
+	"github.com/cbomkit/cbomkit-theia/scanner/key"
 
 	"golang.org/x/crypto/ssh"
 

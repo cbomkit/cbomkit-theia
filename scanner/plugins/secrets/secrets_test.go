@@ -18,7 +18,7 @@ package secrets
 
 import (
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/IBM/cbomkit-theia/provider/cyclonedx"
+	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
 	"github.com/stretchr/testify/assert"
 	"github.com/zricethezav/gitleaks/v8/detect"
 	"os"

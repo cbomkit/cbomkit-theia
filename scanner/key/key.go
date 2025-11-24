@@ -27,7 +27,7 @@ import (
 	"fmt"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/IBM/cbomkit-theia/scanner/errors"
+	"github.com/cbomkit/cbomkit-theia/scanner/errors"
 	"github.com/google/uuid"
 )
 

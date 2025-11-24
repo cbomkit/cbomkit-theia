@@ -26,10 +26,10 @@ import (
 	"strings"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	provcdx "github.com/IBM/cbomkit-theia/provider/cyclonedx"
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
-	"github.com/IBM/cbomkit-theia/scanner/plugins"
-	"github.com/IBM/cbomkit-theia/scanner/tls"
+	provcdx "github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins"
+	"github.com/cbomkit/cbomkit-theia/scanner/tls"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )

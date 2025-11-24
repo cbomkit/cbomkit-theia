@@ -1,0 +1,23 @@
+[
+  {
+    "Name": "Example Custom CA",
+    "Identifiers": [
+      "example ca",
+      "example organization"
+    ],
+    "Status": "warning",
+    "Severity": "medium",
+    "IssueDate": "2024-01",
+    "Reason": "Custom reason for flagging this CA"
+  },
+  {
+    "Name": "Another Example",
+    "Identifiers": [
+      "another example"
+    ],
+    "Status": "distrusted",
+    "Severity": "high",
+    "IssueDate": "2023-12",
+    "Reason": "Another custom reason"
+  }
+]

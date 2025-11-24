@@ -19,8 +19,8 @@ package certificates
 import (
 	"crypto/x509"
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/IBM/cbomkit-theia/provider/cyclonedx"
-	x509lib "github.com/IBM/cbomkit-theia/scanner/x509"
+	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
+	x509lib "github.com/cbomkit/cbomkit-theia/scanner/x509"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

@@ -17,7 +17,7 @@
 package main
 
 import (
-	"github.com/IBM/cbomkit-theia/cmd"
+	"github.com/cbomkit/cbomkit-theia/cmd"
 	log "github.com/sirupsen/logrus"
 )
 

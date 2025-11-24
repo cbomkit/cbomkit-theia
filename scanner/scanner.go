@@ -22,13 +22,14 @@ import (
 	"os"
 	"slices"
 
-	"github.com/IBM/cbomkit-theia/provider/cyclonedx"
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
-	pluginpackage "github.com/IBM/cbomkit-theia/scanner/plugins"
-	"github.com/IBM/cbomkit-theia/scanner/plugins/certificates"
-	"github.com/IBM/cbomkit-theia/scanner/plugins/javasecurity"
-	"github.com/IBM/cbomkit-theia/scanner/plugins/opensslconf"
-	"github.com/IBM/cbomkit-theia/scanner/plugins/secrets"
+	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	pluginpackage "github.com/cbomkit/cbomkit-theia/scanner/plugins"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/certificates"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/javasecurity"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/opensslconf"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/problematicca"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/secrets"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -56,10 +57,11 @@ func GetAllPluginNames() []string {
 
 func GetAllPluginConstructors() map[string]pluginpackage.PluginConstructor {
 	return map[string]pluginpackage.PluginConstructor{
-		"certificates": certificates.NewCertificatePlugin,
-		"javasecurity": javasecurity.NewJavaSecurityPlugin,
-		"secrets":      secrets.NewSecretsPlugin,
-		"opensslconf":  opensslconf.NewOpenSSLConfPlugin,
+		"certificates":   certificates.NewCertificatePlugin,
+		"javasecurity":   javasecurity.NewJavaSecurityPlugin,
+		"secrets":        secrets.NewSecretsPlugin,
+		"opensslconf":    opensslconf.NewOpenSSLConfPlugin,
+		"problematicca":  problematicca.NewProblematicCAPlugin,
 	}
 }
 

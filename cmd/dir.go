@@ -22,8 +22,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
-	"github.com/IBM/cbomkit-theia/scanner"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	"github.com/cbomkit/cbomkit-theia/scanner"
 	"github.com/spf13/cobra"
 	"go.uber.org/dig"
 )

@@ -30,7 +30,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
 
 	"github.com/anchore/stereoscope"
 	"github.com/anchore/stereoscope/pkg/image"

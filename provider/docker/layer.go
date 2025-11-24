@@ -19,8 +19,8 @@ package docker
 import (
 	"errors"
 	"fmt"
-	"github.com/IBM/cbomkit-theia/provider/filesystem"
-	scannererrors "github.com/IBM/cbomkit-theia/scanner/errors"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	scannererrors "github.com/cbomkit/cbomkit-theia/scanner/errors"
 	"io"
 	"strings"
 
