@@ -14,7 +14,7 @@ require (
 	github.com/smallstep/pkcs7 v0.2.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	github.com/zricethezav/gitleaks/v8 v8.28.0
 	go.uber.org/dig v1.19.0
 	golang.org/x/crypto v0.42.0
