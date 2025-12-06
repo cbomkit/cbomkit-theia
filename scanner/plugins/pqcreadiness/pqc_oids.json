@@ -1,0 +1,206 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-15",
+  "source": "NIST FIPS 203, 204, 205 and draft OIDs",
+  "pqcAlgorithms": {
+    "ML-KEM": {
+      "standardName": "FIPS 203",
+      "family": "lattice-kem",
+      "primitive": "kem",
+      "baseOID": "1.3.6.1.4.1.22554.5.6",
+      "parameterSets": {
+        "ML-KEM-512": {
+          "oid": "1.3.6.1.4.1.22554.5.6.1",
+          "nistLevel": 1,
+          "publicKeySize": 800,
+          "ciphertextSize": 768,
+          "classicalBits": 128,
+          "quantumBits": 128
+        },
+        "ML-KEM-768": {
+          "oid": "1.3.6.1.4.1.22554.5.6.2",
+          "nistLevel": 3,
+          "publicKeySize": 1184,
+          "ciphertextSize": 1088,
+          "classicalBits": 192,
+          "quantumBits": 192
+        },
+        "ML-KEM-1024": {
+          "oid": "1.3.6.1.4.1.22554.5.6.3",
+          "nistLevel": 5,
+          "publicKeySize": 1568,
+          "ciphertextSize": 1568,
+          "classicalBits": 256,
+          "quantumBits": 256
+        }
+      }
+    },
+    "ML-DSA": {
+      "standardName": "FIPS 204",
+      "family": "lattice-signature",
+      "primitive": "signature",
+      "baseOID": "1.3.6.1.4.1.22554.5.5",
+      "parameterSets": {
+        "ML-DSA-44": {
+          "oid": "1.3.6.1.4.1.22554.5.5.1",
+          "nistLevel": 2,
+          "publicKeySize": 1312,
+          "signatureSize": 2420,
+          "classicalBits": 128,
+          "quantumBits": 128
+        },
+        "ML-DSA-65": {
+          "oid": "1.3.6.1.4.1.22554.5.5.2",
+          "nistLevel": 3,
+          "publicKeySize": 1952,
+          "signatureSize": 3293,
+          "classicalBits": 192,
+          "quantumBits": 192
+        },
+        "ML-DSA-87": {
+          "oid": "1.3.6.1.4.1.22554.5.5.3",
+          "nistLevel": 5,
+          "publicKeySize": 2592,
+          "signatureSize": 4595,
+          "classicalBits": 256,
+          "quantumBits": 256
+        }
+      }
+    },
+    "SLH-DSA": {
+      "standardName": "FIPS 205",
+      "family": "hash-signature",
+      "primitive": "signature",
+      "baseOID": "1.3.6.1.4.1.22554.5.7",
+      "parameterSets": {
+        "SLH-DSA-SHA2-128f": {
+          "oid": "1.3.6.1.4.1.22554.5.7.1",
+          "nistLevel": 1,
+          "classicalBits": 128,
+          "quantumBits": 128
+        },
+        "SLH-DSA-SHA2-128s": {
+          "oid": "1.3.6.1.4.1.22554.5.7.2",
+          "nistLevel": 1,
+          "classicalBits": 128,
+          "quantumBits": 128
+        },
+        "SLH-DSA-SHA2-192f": {
+          "oid": "1.3.6.1.4.1.22554.5.7.3",
+          "nistLevel": 3,
+          "classicalBits": 192,
+          "quantumBits": 192
+        },
+        "SLH-DSA-SHA2-192s": {
+          "oid": "1.3.6.1.4.1.22554.5.7.4",
+          "nistLevel": 3,
+          "classicalBits": 192,
+          "quantumBits": 192
+        },
+        "SLH-DSA-SHA2-256f": {
+          "oid": "1.3.6.1.4.1.22554.5.7.5",
+          "nistLevel": 5,
+          "classicalBits": 256,
+          "quantumBits": 256
+        },
+        "SLH-DSA-SHA2-256s": {
+          "oid": "1.3.6.1.4.1.22554.5.7.6",
+          "nistLevel": 5,
+          "classicalBits": 256,
+          "quantumBits": 256
+        },
+        "SLH-DSA-SHAKE-128f": {
+          "oid": "1.3.6.1.4.1.22554.5.7.7",
+          "nistLevel": 1,
+          "classicalBits": 128,
+          "quantumBits": 128
+        },
+        "SLH-DSA-SHAKE-128s": {
+          "oid": "1.3.6.1.4.1.22554.5.7.8",
+          "nistLevel": 1,
+          "classicalBits": 128,
+          "quantumBits": 128
+        },
+        "SLH-DSA-SHAKE-192f": {
+          "oid": "1.3.6.1.4.1.22554.5.7.9",
+          "nistLevel": 3,
+          "classicalBits": 192,
+          "quantumBits": 192
+        },
+        "SLH-DSA-SHAKE-192s": {
+          "oid": "1.3.6.1.4.1.22554.5.7.10",
+          "nistLevel": 3,
+          "classicalBits": 192,
+          "quantumBits": 192
+        },
+        "SLH-DSA-SHAKE-256f": {
+          "oid": "1.3.6.1.4.1.22554.5.7.11",
+          "nistLevel": 5,
+          "classicalBits": 256,
+          "quantumBits": 256
+        },
+        "SLH-DSA-SHAKE-256s": {
+          "oid": "1.3.6.1.4.1.22554.5.7.12",
+          "nistLevel": 5,
+          "classicalBits": 256,
+          "quantumBits": 256
+        }
+      }
+    }
+  },
+  "hybridSchemes": {
+    "X25519Kyber768": {
+      "displayName": "X25519+ML-KEM-768",
+      "components": ["X25519", "ML-KEM-768"],
+      "oid": "1.3.6.1.4.1.22554.5.6.4",
+      "nistLevel": 3,
+      "isHybrid": true,
+      "classicalComponent": "X25519",
+      "pqcComponent": "ML-KEM-768",
+      "classicalBits": 128,
+      "quantumBits": 192
+    },
+    "ECDH-NIST-P256-ML-KEM-768": {
+      "displayName": "ECDH-P256+ML-KEM-768",
+      "components": ["ECDH-P256", "ML-KEM-768"],
+      "oid": "1.3.6.1.4.1.22554.5.6.5",
+      "nistLevel": 3,
+      "isHybrid": true,
+      "classicalComponent": "ECDH-P256",
+      "pqcComponent": "ML-KEM-768",
+      "classicalBits": 128,
+      "quantumBits": 192
+    },
+    "ECDH-NIST-P384-ML-KEM-1024": {
+      "displayName": "ECDH-P384+ML-KEM-1024",
+      "components": ["ECDH-P384", "ML-KEM-1024"],
+      "oid": "1.3.6.1.4.1.22554.5.6.6",
+      "nistLevel": 5,
+      "isHybrid": true,
+      "classicalComponent": "ECDH-P384",
+      "pqcComponent": "ML-KEM-1024",
+      "classicalBits": 192,
+      "quantumBits": 256
+    }
+  },
+  "pqcNamePatterns": [
+    "kyber",
+    "dilithium",
+    "sphincs",
+    "falcon",
+    "ml-kem",
+    "ml-dsa",
+    "slh-dsa",
+    "fn-dsa",
+    "mlkem",
+    "mldsa"
+  ],
+  "hybridNamePatterns": [
+    "x25519kyber",
+    "x25519_kyber",
+    "ecdh.*kyber",
+    "kyber.*ecdh",
+    "p256.*kyber",
+    "p384.*kyber"
+  ]
+}
