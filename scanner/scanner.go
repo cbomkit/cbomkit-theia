@@ -26,10 +26,16 @@ import (
 	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
 	pluginpackage "github.com/cbomkit/cbomkit-theia/scanner/plugins"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/certificates"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/dockerconf"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/etcdconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/javasecurity"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/mysqlconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/opensslconf"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/postgresconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/problematicca"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/redisconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/secrets"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/sshconfig"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -57,11 +63,17 @@ func GetAllPluginNames() []string {
 
 func GetAllPluginConstructors() map[string]pluginpackage.PluginConstructor {
 	return map[string]pluginpackage.PluginConstructor{
-		"certificates":   certificates.NewCertificatePlugin,
-		"javasecurity":   javasecurity.NewJavaSecurityPlugin,
-		"secrets":        secrets.NewSecretsPlugin,
-		"opensslconf":    opensslconf.NewOpenSSLConfPlugin,
-		"problematicca":  problematicca.NewProblematicCAPlugin,
+		"certificates":  certificates.NewCertificatePlugin,
+		"javasecurity":  javasecurity.NewJavaSecurityPlugin,
+		"secrets":       secrets.NewSecretsPlugin,
+		"opensslconf":   opensslconf.NewOpenSSLConfPlugin,
+		"problematicca": problematicca.NewProblematicCAPlugin,
+		"sshconfig":     sshconfig.NewSSHConfigPlugin,
+		"redisconf":     redisconf.NewRedisConfPlugin,
+		"postgresconf":  postgresconf.NewPostgresConfPlugin,
+		"mysqlconf":     mysqlconf.NewMySQLConfPlugin,
+		"dockerconf":    dockerconf.NewDockerConfPlugin,
+		"etcdconf":      etcdconf.NewEtcdConfPlugin,
 	}
 }
 

@@ -1,0 +1,8 @@
+{
+    "tls": true,
+    "tlsverify": true,
+    "tlscacert": "/etc/docker/certs/ca.pem",
+    "tlscert": "/etc/docker/certs/server-cert.pem",
+    "tlskey": "/etc/docker/certs/server-key.pem",
+    "hosts": ["tcp://0.0.0.0:2376"]
+}

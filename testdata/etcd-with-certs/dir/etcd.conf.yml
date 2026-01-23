@@ -1,0 +1,23 @@
+# etcd configuration
+name: 'node1'
+data-dir: '/var/lib/etcd'
+
+client-transport-security:
+  cert-file: '/etc/etcd/pki/server.crt'
+  key-file: '/etc/etcd/pki/server.key'
+  trusted-ca-file: '/etc/etcd/pki/ca.crt'
+  client-cert-auth: true
+  cipher-suites:
+    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  tls-min-version: 'TLS1.2'
+  tls-max-version: 'TLS1.3'
+
+peer-transport-security:
+  cert-file: '/etc/etcd/pki/peer.crt'
+  key-file: '/etc/etcd/pki/peer.key'
+  trusted-ca-file: '/etc/etcd/pki/ca.crt'
+  client-cert-auth: true
+  cipher-suites:
+    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  tls-min-version: 'TLS1.2'
+  tls-max-version: 'TLS1.3'
