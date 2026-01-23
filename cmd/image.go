@@ -89,7 +89,9 @@ func prepareImageAndRun(image docker.ActiveImage) error {
 	container := dig.New()
 
 	if err := container.Provide(func() filesystem.Filesystem {
-		return docker.GetSquashedFilesystem(image)
+		inner := docker.GetSquashedFilesystem(image)
+		patterns := filesystem.LoadIgnorePatterns("", viper.GetStringSlice("ignore"), ignorePatterns)
+		return filesystem.NewFilteredFilesystem(inner, patterns)
 	}); err != nil {
 		return err
 	}

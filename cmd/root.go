@@ -30,6 +30,7 @@ import (
 var cfgFile string
 var bomFilePath string
 var activatedPlugins []string
+var ignorePatterns []string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -115,6 +116,16 @@ func init() {
 		log.Error(err)
 		return
 	}
+
+	// add ignore patterns
+	rootCmd.
+		PersistentFlags().
+		StringSliceVar(&ignorePatterns, "ignore", []string{}, "file path patterns to ignore during scanning (glob syntax, e.g. 'testdata/,*.tmp')")
+	err = viper.BindPFlag("ignore", rootCmd.PersistentFlags().Lookup("ignore"))
+	if err != nil {
+		log.Error(err)
+		return
+	}
 }
 
 const configName = "config"
@@ -138,6 +149,7 @@ func initConfig() {
 	allPlugins := scanner.GetAllPluginNames()
 	viper.SetDefault("docker_host", "unix:///var/run/docker.sock")
 	viper.SetDefault("plugins", allPlugins)
+	viper.SetDefault("ignore", []string{})
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil { // Handle errors reading the config file

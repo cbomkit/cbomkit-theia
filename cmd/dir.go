@@ -25,6 +25,7 @@ import (
 	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
 	"github.com/cbomkit/cbomkit-theia/scanner"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )
 
@@ -44,7 +45,9 @@ cbomkit-theia dir my/cool/directory
 		container := dig.New()
 
 		if err := container.Provide(func() filesystem.Filesystem {
-			return filesystem.NewPlainFilesystem(args[0])
+			plain := filesystem.NewPlainFilesystem(args[0])
+			patterns := filesystem.LoadIgnorePatterns(args[0], viper.GetStringSlice("ignore"), ignorePatterns)
+			return filesystem.NewFilteredFilesystem(plain, patterns)
 		}); err != nil {
 			log.Error("Could not scan dir: ", err)
 			return
