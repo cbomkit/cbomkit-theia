@@ -1,0 +1,541 @@
+{
+  "algorithms": {
+    "MD2WithRSA": {
+      "oid": "1.2.840.113549.1.1.2",
+      "name": "MD2WithRSA",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "padding": "PKCS1v15",
+      "components": {
+        "hash": "MD2",
+        "signature": "RSA"
+      }
+    },
+    "MD5WithRSA": {
+      "oid": "1.2.840.113549.1.1.4",
+      "name": "MD5WithRSA",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "padding": "PKCS1v15",
+      "components": {
+        "hash": "MD5",
+        "signature": "RSA"
+      }
+    },
+    "SHA1WithRSA": {
+      "oid": "1.2.840.113549.1.1.5",
+      "name": "SHA1WithRSA",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "padding": "PKCS1v15",
+      "parameterSetIdentifier": "160",
+      "components": {
+        "hash": "SHA1",
+        "signature": "RSA"
+      }
+    },
+    "SHA256WithRSA": {
+      "oid": "1.2.840.113549.1.1.11",
+      "name": "SHA256WithRSA",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "padding": "PKCS1v15",
+      "parameterSetIdentifier": "256",
+      "components": {
+        "hash": "SHA256",
+        "signature": "RSA"
+      }
+    },
+    "SHA384WithRSA": {
+      "oid": "1.2.840.113549.1.1.12",
+      "name": "SHA384WithRSA",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "padding": "PKCS1v15",
+      "parameterSetIdentifier": "384",
+      "components": {
+        "hash": "SHA384",
+        "signature": "RSA"
+      }
+    },
+    "SHA512WithRSA": {
+      "oid": "1.2.840.113549.1.1.13",
+      "name": "SHA512WithRSA",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "padding": "PKCS1v15",
+      "parameterSetIdentifier": "512",
+      "components": {
+        "hash": "SHA512",
+        "signature": "RSA"
+      }
+    },
+    "DSAWithSHA1": {
+      "oid": "1.2.840.10040.4.3",
+      "name": "DSAWithSHA1",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "160",
+      "components": {
+        "hash": "SHA1",
+        "signature": "DSA"
+      }
+    },
+    "DSAWithSHA256": {
+      "oid": "2.16.840.1.101.3.4.3.2",
+      "name": "DSAWithSHA256",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "256",
+      "components": {
+        "hash": "SHA256",
+        "signature": "DSA"
+      }
+    },
+    "ECDSAWithSHA1": {
+      "oid": "1.2.840.10045.4.1",
+      "name": "ECDSAWithSHA1",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "160",
+      "components": {
+        "hash": "SHA1",
+        "signature": "ECDSA"
+      }
+    },
+    "ECDSAWithSHA256": {
+      "oid": "1.2.840.10045.4.3.2",
+      "name": "ECDSAWithSHA256",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "256",
+      "components": {
+        "hash": "SHA256",
+        "signature": "ECDSA"
+      }
+    },
+    "ECDSAWithSHA384": {
+      "oid": "1.2.840.10045.4.3.3",
+      "name": "ECDSAWithSHA384",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "384",
+      "components": {
+        "hash": "SHA384",
+        "signature": "ECDSA"
+      }
+    },
+    "ECDSAWithSHA512": {
+      "oid": "1.2.840.10045.4.3.4",
+      "name": "ECDSAWithSHA512",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "512",
+      "components": {
+        "hash": "SHA512",
+        "signature": "ECDSA"
+      }
+    },
+    "SHA256WithRSAPSS": {
+      "oid": "1.2.840.113549.1.1.10",
+      "name": "SHA256WithRSAPSS",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "padding": "PSS",
+      "parameterSetIdentifier": "256",
+      "pssHashOID": "2.16.840.1.101.3.4.2.1",
+      "components": {
+        "hash": "SHA256",
+        "signature": "RSA"
+      }
+    },
+    "SHA384WithRSAPSS": {
+      "oid": "1.2.840.113549.1.1.10",
+      "name": "SHA384WithRSAPSS",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "padding": "PSS",
+      "parameterSetIdentifier": "384",
+      "pssHashOID": "2.16.840.1.101.3.4.2.2",
+      "components": {
+        "hash": "SHA384",
+        "signature": "RSA"
+      }
+    },
+    "SHA512WithRSAPSS": {
+      "oid": "1.2.840.113549.1.1.10",
+      "name": "SHA512WithRSAPSS",
+      "type": "composite",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "padding": "PSS",
+      "parameterSetIdentifier": "512",
+      "pssHashOID": "2.16.840.1.101.3.4.2.3",
+      "components": {
+        "hash": "SHA512",
+        "signature": "RSA"
+      }
+    },
+    "Ed25519": {
+      "oid": "1.3.101.112",
+      "name": "Ed25519",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "curve": "Ed25519"
+    },
+    "RSA": {
+      "oid": "1.2.840.113549.1.1.1",
+      "name": "RSA",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"]
+    },
+    "RSA-PKE": {
+      "oid": "1.2.840.113549.1.1.1",
+      "name": "RSA",
+      "type": "standalone",
+      "primitive": "pke",
+      "cryptoFunctions": ["encapsulate", "decapsulate", "sign"]
+    },
+    "DSA": {
+      "oid": "1.2.840.10040.4.1",
+      "name": "DSA",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"]
+    },
+    "ECDSA": {
+      "oid": "1.2.840.10045.2.1",
+      "name": "ECDSA",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"]
+    },
+    "MD2": {
+      "oid": "1.2.840.113549.2.2",
+      "name": "MD2",
+      "type": "standalone",
+      "primitive": "hash",
+      "cryptoFunctions": ["digest"],
+      "parameterSetIdentifier": "2",
+      "padding": "Other"
+    },
+    "MD5": {
+      "oid": "1.2.840.113549.2.5",
+      "name": "MD5",
+      "type": "standalone",
+      "primitive": "hash",
+      "cryptoFunctions": ["digest"],
+      "parameterSetIdentifier": "5"
+    },
+    "SHA1": {
+      "oid": "1.3.14.3.2.26",
+      "name": "SHA1",
+      "type": "standalone",
+      "primitive": "hash",
+      "cryptoFunctions": ["digest"],
+      "parameterSetIdentifier": "1"
+    },
+    "SHA256": {
+      "oid": "2.16.840.1.101.3.4.2.1",
+      "name": "SHA256",
+      "type": "standalone",
+      "primitive": "hash",
+      "cryptoFunctions": ["digest"],
+      "parameterSetIdentifier": "256"
+    },
+    "SHA384": {
+      "oid": "2.16.840.1.101.3.4.2.2",
+      "name": "SHA384",
+      "type": "standalone",
+      "primitive": "hash",
+      "cryptoFunctions": ["digest"],
+      "parameterSetIdentifier": "384"
+    },
+    "SHA512": {
+      "oid": "2.16.840.1.101.3.4.2.3",
+      "name": "SHA512",
+      "type": "standalone",
+      "primitive": "hash",
+      "cryptoFunctions": ["digest"],
+      "parameterSetIdentifier": "512"
+    },
+
+    "ML-DSA-44": {
+      "oid": "2.16.840.1.101.3.4.3.17",
+      "name": "ML-DSA-44",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "44",
+      "nistStandard": "FIPS204"
+    },
+    "ML-DSA-65": {
+      "oid": "2.16.840.1.101.3.4.3.18",
+      "name": "ML-DSA-65",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "65",
+      "nistStandard": "FIPS204"
+    },
+    "ML-DSA-87": {
+      "oid": "2.16.840.1.101.3.4.3.19",
+      "name": "ML-DSA-87",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "87",
+      "nistStandard": "FIPS204"
+    },
+
+    "ML-KEM-512": {
+      "oid": "2.16.840.1.101.3.4.4.1",
+      "name": "ML-KEM-512",
+      "type": "standalone",
+      "primitive": "kem",
+      "cryptoFunctions": ["encapsulate", "decapsulate"],
+      "parameterSetIdentifier": "512",
+      "nistStandard": "FIPS203"
+    },
+    "ML-KEM-768": {
+      "oid": "2.16.840.1.101.3.4.4.2",
+      "name": "ML-KEM-768",
+      "type": "standalone",
+      "primitive": "kem",
+      "cryptoFunctions": ["encapsulate", "decapsulate"],
+      "parameterSetIdentifier": "768",
+      "nistStandard": "FIPS203"
+    },
+    "ML-KEM-1024": {
+      "oid": "2.16.840.1.101.3.4.4.3",
+      "name": "ML-KEM-1024",
+      "type": "standalone",
+      "primitive": "kem",
+      "cryptoFunctions": ["encapsulate", "decapsulate"],
+      "parameterSetIdentifier": "1024",
+      "nistStandard": "FIPS203"
+    },
+
+    "SLH-DSA-SHA2-128s": {
+      "oid": "2.16.840.1.101.3.4.3.20",
+      "name": "SLH-DSA-SHA2-128s",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "128s",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHA2-128f": {
+      "oid": "2.16.840.1.101.3.4.3.21",
+      "name": "SLH-DSA-SHA2-128f",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "128f",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHA2-192s": {
+      "oid": "2.16.840.1.101.3.4.3.22",
+      "name": "SLH-DSA-SHA2-192s",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "192s",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHA2-192f": {
+      "oid": "2.16.840.1.101.3.4.3.23",
+      "name": "SLH-DSA-SHA2-192f",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "192f",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHA2-256s": {
+      "oid": "2.16.840.1.101.3.4.3.24",
+      "name": "SLH-DSA-SHA2-256s",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "256s",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHA2-256f": {
+      "oid": "2.16.840.1.101.3.4.3.25",
+      "name": "SLH-DSA-SHA2-256f",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "256f",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHAKE-128s": {
+      "oid": "2.16.840.1.101.3.4.3.26",
+      "name": "SLH-DSA-SHAKE-128s",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "128s",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHAKE-128f": {
+      "oid": "2.16.840.1.101.3.4.3.27",
+      "name": "SLH-DSA-SHAKE-128f",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "128f",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHAKE-192s": {
+      "oid": "2.16.840.1.101.3.4.3.28",
+      "name": "SLH-DSA-SHAKE-192s",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "192s",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHAKE-192f": {
+      "oid": "2.16.840.1.101.3.4.3.29",
+      "name": "SLH-DSA-SHAKE-192f",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "192f",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHAKE-256s": {
+      "oid": "2.16.840.1.101.3.4.3.30",
+      "name": "SLH-DSA-SHAKE-256s",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "256s",
+      "nistStandard": "FIPS205"
+    },
+    "SLH-DSA-SHAKE-256f": {
+      "oid": "2.16.840.1.101.3.4.3.31",
+      "name": "SLH-DSA-SHAKE-256f",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "parameterSetIdentifier": "256f",
+      "nistStandard": "FIPS205"
+    },
+
+    "ML-DSA-44-RSA2048-PSS-SHA256": {
+      "oid": "2.16.840.1.114027.80.8.1.48",
+      "name": "ML-DSA-44-RSA2048-PSS-SHA256",
+      "type": "hybrid",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "components": {
+        "pqc": "ML-DSA-44",
+        "traditional": "RSA"
+      }
+    },
+    "ML-DSA-44-ECDSA-P256-SHA256": {
+      "oid": "2.16.840.1.114027.80.8.1.51",
+      "name": "ML-DSA-44-ECDSA-P256-SHA256",
+      "type": "hybrid",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "components": {
+        "pqc": "ML-DSA-44",
+        "traditional": "ECDSA"
+      }
+    },
+    "ML-DSA-44-Ed25519": {
+      "oid": "2.16.840.1.114027.80.8.1.50",
+      "name": "ML-DSA-44-Ed25519",
+      "type": "hybrid",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "components": {
+        "pqc": "ML-DSA-44",
+        "traditional": "Ed25519"
+      }
+    },
+    "ML-DSA-65-RSA3072-PSS-SHA512": {
+      "oid": "2.16.840.1.114027.80.8.1.52",
+      "name": "ML-DSA-65-RSA3072-PSS-SHA512",
+      "type": "hybrid",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "components": {
+        "pqc": "ML-DSA-65",
+        "traditional": "RSA"
+      }
+    },
+    "ML-DSA-65-ECDSA-P256-SHA512": {
+      "oid": "2.16.840.1.114027.80.8.1.57",
+      "name": "ML-DSA-65-ECDSA-P256-SHA512",
+      "type": "hybrid",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "components": {
+        "pqc": "ML-DSA-65",
+        "traditional": "ECDSA"
+      }
+    },
+    "ML-DSA-65-Ed25519": {
+      "oid": "2.16.840.1.114027.80.8.1.56",
+      "name": "ML-DSA-65-Ed25519",
+      "type": "hybrid",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "components": {
+        "pqc": "ML-DSA-65",
+        "traditional": "Ed25519"
+      }
+    },
+    "ML-DSA-87-ECDSA-P384-SHA512": {
+      "oid": "2.16.840.1.114027.80.8.1.60",
+      "name": "ML-DSA-87-ECDSA-P384-SHA512",
+      "type": "hybrid",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "components": {
+        "pqc": "ML-DSA-87",
+        "traditional": "ECDSA"
+      }
+    },
+    "ML-DSA-87-Ed448": {
+      "oid": "2.16.840.1.114027.80.8.1.59",
+      "name": "ML-DSA-87-Ed448",
+      "type": "hybrid",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "components": {
+        "pqc": "ML-DSA-87",
+        "traditional": "Ed448"
+      }
+    },
+    "Ed448": {
+      "oid": "1.3.101.113",
+      "name": "Ed448",
+      "type": "standalone",
+      "primitive": "signature",
+      "cryptoFunctions": ["sign"],
+      "curve": "Ed448"
+    }
+  }
+}
