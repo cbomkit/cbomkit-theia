@@ -76,7 +76,7 @@ func GetImage(name string) (image ActiveImage, err error) {
 
 	imageID := getImgIDWithoutDigest(stereoscopeImage.Metadata.ID)
 
-	log.Info("successfully download image ", name, " with id ", imageID)
+	log.Info("successfully loaded image ", name, " with id ", imageID)
 
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {

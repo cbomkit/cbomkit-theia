@@ -17,8 +17,12 @@
 package cmd
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"io"
 	"os"
+	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
 
@@ -49,11 +53,20 @@ Supported image sources:
 Examples:
 cbomkit-theia image nginx`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		value := viper.GetString("docker_host")
-		err := os.Setenv("DOCKER_HOST", value)
-		if err != nil {
-			log.Error("failed to set environment variable 'DOCKER_HOST'.")
+		if os.Getenv("DOCKER_HOST") != "" {
 			return
+		}
+		value := viper.GetString("docker_host")
+		if cmd.PersistentFlags().Changed("docker_host") || value != "unix:///var/run/docker.sock" {
+			if err := os.Setenv("DOCKER_HOST", value); err != nil {
+				log.Error("failed to set environment variable 'DOCKER_HOST'.")
+			}
+			return
+		}
+		if host := resolveDockerHostFromContext(); host != "" {
+			if err := os.Setenv("DOCKER_HOST", host); err != nil {
+				log.Error("failed to set environment variable 'DOCKER_HOST'.")
+			}
 		}
 	},
 	Args: cobra.ExactArgs(1),
@@ -98,6 +111,61 @@ func prepareImageAndRun(image docker.ActiveImage) error {
 	}
 
 	return nil
+}
+
+// resolveDockerHostFromContext reads the active Docker context configuration
+// to determine the Docker host endpoint. This handles cases where the Docker
+// socket is at a non-standard path (e.g., Rancher Desktop, Colima, Podman).
+func resolveDockerHostFromContext() string {
+	dockerConfigDir := os.Getenv("DOCKER_CONFIG")
+	if dockerConfigDir == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return ""
+		}
+		dockerConfigDir = filepath.Join(home, ".docker")
+	}
+
+	// Read config.json to find the current context
+	configBytes, err := os.ReadFile(filepath.Join(dockerConfigDir, "config.json"))
+	if err != nil {
+		return ""
+	}
+
+	var dockerConfig struct {
+		CurrentContext string `json:"currentContext"`
+	}
+	if err := json.Unmarshal(configBytes, &dockerConfig); err != nil {
+		return ""
+	}
+
+	if dockerConfig.CurrentContext == "" || dockerConfig.CurrentContext == "default" {
+		return ""
+	}
+
+	// Context metadata is stored at ~/.docker/contexts/meta/<sha256(name)>/meta.json
+	hash := sha256.Sum256([]byte(dockerConfig.CurrentContext))
+	contextDir := hex.EncodeToString(hash[:])
+	metaPath := filepath.Join(dockerConfigDir, "contexts", "meta", contextDir, "meta.json")
+
+	metaBytes, err := os.ReadFile(metaPath)
+	if err != nil {
+		return ""
+	}
+
+	var meta struct {
+		Endpoints map[string]struct {
+			Host string `json:"Host"`
+		} `json:"Endpoints"`
+	}
+	if err := json.Unmarshal(metaBytes, &meta); err != nil {
+		return ""
+	}
+
+	if ep, ok := meta.Endpoints["docker"]; ok && ep.Host != "" {
+		return ep.Host
+	}
+	return ""
 }
 
 func init() {

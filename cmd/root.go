@@ -155,27 +155,23 @@ func initConfig() {
 			return
 		}
 	} else {
-		// Config file exists - ensure all plugins are in the config
+		// Config file exists - ensure plugins list matches available plugins
 		configPlugins := viper.GetStringSlice("plugins")
-		missingPlugins := false
-
-		// Check if any plugin is missing
-		for _, plugin := range allPlugins {
-			found := false
-			for _, configPlugin := range configPlugins {
-				if configPlugin == plugin {
-					found = true
-					break
-				}
-			}
-			if !found {
-				missingPlugins = true
-				break
-			}
+		allPluginSet := make(map[string]bool, len(allPlugins))
+		for _, p := range allPlugins {
+			allPluginSet[p] = true
 		}
 
-		// Update config if plugins are missing
-		if missingPlugins {
+		// Keep only valid plugins and check if any valid plugin is missing
+		var validPlugins []string
+		for _, p := range configPlugins {
+			if allPluginSet[p] {
+				validPlugins = append(validPlugins, p)
+			}
+		}
+		needsUpdate := len(validPlugins) != len(configPlugins) || len(validPlugins) != len(allPlugins)
+
+		if needsUpdate {
 			viper.Set("plugins", allPlugins)
 			err = viper.WriteConfig()
 			if err != nil {
