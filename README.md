@@ -73,6 +73,7 @@ Flags:
   -b, --bom string        BOM file to be verified and enriched
       --config string     config file (default is $HOME/.cbomkit-theia.yaml)
   -h, --help              help for cbomkit-theia
+      --ignore strings    file path patterns to ignore during scanning (glob syntax, e.g. 'testdata/,*.tmp')
   -p, --plugins strings   list of plugins to use (default [certificates,javasecurity,secrets,opensslconf,keys,vex])
       --schema string     BOM schema to validate the given BOM (default "provider/cyclonedx/bom-1.6.schema.json")
 
@@ -122,6 +123,46 @@ By default, all available plugins are enabled:
 # Run with only specific plugins
 ./cbomkit-theia image nginx -p certificates -p secrets
 ```
+
+### Ignoring Files
+
+To skip certain files during scanning (e.g., test fixtures or development artifacts), you can specify ignore patterns using glob syntax. Patterns can be provided via three sources, which are merged:
+
+**1. `.cbomkitignore` file** (placed in the scanned directory root, gitignore-style):
+
+```
+# Skip test fixtures
+testdata/
+*_test_cert.pem
+
+# Skip vendor/dependency dirs
+vendor/
+node_modules/
+
+# Skip development secrets
+.env
+*.key.dev
+```
+
+**2. Config file** (`$HOME/.cbomkit-theia/config.yaml`):
+
+```yaml
+ignore:
+  - testdata/
+  - "*.tmp"
+  - vendor/
+```
+
+**3. CLI flag** (`--ignore`):
+
+```shell
+cbomkit-theia dir ./myproject --ignore "testdata/,*.tmp,vendor/"
+```
+
+Patterns support [doublestar](https://github.com/bmatcuk/doublestar) glob syntax (e.g., `**/*.pdf`, `*.tmp`, `dir/`). Lines starting with `#` are treated as comments. A trailing `/` matches any path with that directory prefix.
+
+> [!NOTE]
+> For image scanning, `.cbomkitignore` is not applicable (there is no local directory root). Config and CLI patterns still apply.
 
 ## Development
 
