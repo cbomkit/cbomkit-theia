@@ -1,0 +1,29 @@
+# Postfix main configuration
+
+myhostname = mail.example.com
+mydomain = example.com
+myorigin = $mydomain
+
+# Inbound TLS settings
+smtpd_tls_cert_file = /etc/postfix/ssl/server.crt
+smtpd_tls_key_file = /etc/postfix/ssl/server.key
+smtpd_tls_CAfile = /etc/postfix/ssl/ca.crt
+smtpd_tls_security_level = may
+smtpd_tls_protocols = !SSLv2, !SSLv3, !TLSv1, TLSv1.2, TLSv1.3
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtpd_tls_ciphers = high
+smtpd_tls_mandatory_ciphers = high
+smtpd_tls_exclude_ciphers = aNULL, MD5, DES, RC4
+smtpd_tls_dh1024_param_file = /etc/postfix/ssl/dh2048.pem
+
+# Outbound TLS settings
+smtp_tls_cert_file = /etc/postfix/ssl/client.crt
+smtp_tls_key_file = /etc/postfix/ssl/client.key
+smtp_tls_CAfile = /etc/postfix/ssl/ca.crt
+smtp_tls_security_level = may
+smtp_tls_protocols = !SSLv2, !SSLv3, TLSv1.2, TLSv1.3
+smtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+
+# Cipher lists
+tls_high_cipherlist = ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384
+tls_preempt_cipherlist = yes

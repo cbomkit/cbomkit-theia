@@ -25,13 +25,19 @@ import (
 	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
 	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
 	pluginpackage "github.com/cbomkit/cbomkit-theia/scanner/plugins"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/apacheconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/certificates"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/dockerconf"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/dovecotconf"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/elasticsearchconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/etcdconf"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/haproxyconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/javasecurity"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/mysqlconf"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/nginxconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/opensslconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/postgresconf"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/postfixconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/problematicca"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/redisconf"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/secrets"
@@ -72,8 +78,14 @@ func GetAllPluginConstructors() map[string]pluginpackage.PluginConstructor {
 		"redisconf":     redisconf.NewRedisConfPlugin,
 		"postgresconf":  postgresconf.NewPostgresConfPlugin,
 		"mysqlconf":     mysqlconf.NewMySQLConfPlugin,
-		"dockerconf":    dockerconf.NewDockerConfPlugin,
-		"etcdconf":      etcdconf.NewEtcdConfPlugin,
+		"dockerconf":        dockerconf.NewDockerConfPlugin,
+		"etcdconf":          etcdconf.NewEtcdConfPlugin,
+		"nginxconf":         nginxconf.NewNginxConfPlugin,
+		"apacheconf":       apacheconf.NewApacheConfPlugin,
+		"haproxyconf":      haproxyconf.NewHAProxyConfPlugin,
+		"postfixconf":      postfixconf.NewPostfixConfPlugin,
+		"dovecotconf":      dovecotconf.NewDovecotConfPlugin,
+		"elasticsearchconf": elasticsearchconf.NewElasticsearchConfPlugin,
 	}
 }
 
