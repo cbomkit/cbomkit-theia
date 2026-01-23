@@ -167,27 +167,29 @@ func initConfig() {
 			return
 		}
 	} else {
-		// Config file exists - ensure plugins list matches available plugins
-		configPlugins := viper.GetStringSlice("plugins")
-		allPluginSet := make(map[string]bool, len(allPlugins))
-		for _, p := range allPlugins {
-			allPluginSet[p] = true
-		}
-
-		// Keep only valid plugins and check if any valid plugin is missing
-		var validPlugins []string
-		for _, p := range configPlugins {
-			if allPluginSet[p] {
-				validPlugins = append(validPlugins, p)
+		// Config file exists - remove any stale plugin names that no longer exist.
+		// Only validate config when the user hasn't overridden via CLI flag.
+		if !rootCmd.PersistentFlags().Lookup("plugins").Changed {
+			configPlugins := viper.GetStringSlice("plugins")
+			allPluginSet := make(map[string]bool, len(allPlugins))
+			for _, p := range allPlugins {
+				allPluginSet[p] = true
 			}
-		}
-		needsUpdate := len(validPlugins) != len(configPlugins) || len(validPlugins) != len(allPlugins)
 
-		if needsUpdate {
-			viper.Set("plugins", allPlugins)
-			err = viper.WriteConfig()
-			if err != nil {
-				log.Error("Error updating plugins in configuration: ", err)
+			var validPlugins []string
+			for _, p := range configPlugins {
+				if allPluginSet[p] {
+					validPlugins = append(validPlugins, p)
+				}
+			}
+
+			// Only update config if there are invalid/stale plugin names
+			if len(validPlugins) != len(configPlugins) {
+				viper.Set("plugins", validPlugins)
+				err = viper.WriteConfig()
+				if err != nil {
+					log.Error("Error updating plugins in configuration: ", err)
+				}
 			}
 		}
 	}
