@@ -69,53 +69,39 @@ func (certificatesPlugin *Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.B
 
 	err = fs.WalkDir(
 		func(path string) (err error) {
+			exists, err := fs.Exists(path)
+			if err != nil {
+				return err
+			} else if !exists {
+				log.WithField("path", path).Warning("Certificate does not exist")
+				return nil
+			}
+
+			readCloser, err := fs.Open(path)
+			if err != nil {
+				return err
+			}
+			raw, err := filesystem.ReadAllAndClose(readCloser)
+			if err != nil {
+				return err
+			}
+
 			switch filepath.Ext(path) {
-			case ".pem", ".cer", ".cert", ".der", ".ca-bundle", ".crt":
-				exists, err := fs.Exists(path)
-				if err != nil {
-					return err
-				} else if !exists {
-					log.WithField("path", path).Warning("Certificate does not exist")
-					return nil
-				}
-
-				readCloser, err := fs.Open(path)
-				if err != nil {
-					return err
-				}
-				raw, err := filesystem.ReadAllAndClose(readCloser)
-				if err != nil {
-					return err
-				}
-				certs, err := parseX509CertFromPath(raw, path)
-				if err != nil {
-					return scannererrors.GetParsingFailedAlthoughCheckedError(err, certificatesPlugin.GetName())
-				}
-				certificates = append(certificates, certs...)
 			case ".p7a", ".p7b", ".p7c", ".p7r", ".p7s", ".spc":
-				exists, err := fs.Exists(path)
-				if err != nil {
-					return err
-				} else if !exists {
-					log.WithField("path", path).Warning("Certificate does not exist")
-					return nil
-				}
-
-				readCloser, err := fs.Open(path)
-				if err != nil {
-					return err
-				}
-				raw, err := filesystem.ReadAllAndClose(readCloser)
-				if err != nil {
-					return err
-				}
 				certs, err := parsePKCS7FromPath(raw, path)
 				if err != nil {
 					return scannererrors.GetParsingFailedAlthoughCheckedError(err, certificatesPlugin.GetName())
 				}
 				certificates = append(certificates, certs...)
+			case ".pem", ".cer", ".cert", ".der", ".ca-bundle", ".crt":
+				certs, err := parseX509CertFromPath(raw, path)
+				if err != nil {
+					return scannererrors.GetParsingFailedAlthoughCheckedError(err, certificatesPlugin.GetName())
+				}
+				certificates = append(certificates, certs...)
 			default:
-				return nil
+				certs := parsePEMCertificatesFromPath(raw, path)
+				certificates = append(certificates, certs...)
 			}
 			return nil
 		})
@@ -142,6 +128,33 @@ func (certificatesPlugin *Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.B
 		cyclonedx.AddDependencies(bom, *dependencyMap)
 	}
 	return nil
+}
+
+// parsePEMCertificatesFromPath attempts to parse PEM-encoded certificates from raw bytes.
+// Unlike parseX509CertFromPath, this does not attempt DER parsing and does not return errors
+// for files that do not contain certificates, making it safe to use on files with unknown extensions.
+func parsePEMCertificatesFromPath(raw []byte, path string) []*x509.CertificateWithMetadata {
+	blocks := pemlib.ParsePEMToBlocksWithTypeFilter(raw, pemlib.Filter{
+		FilterType: pemlib.TypeAllowlist,
+		List:       []pemlib.BlockType{pemlib.BlockTypeCertificate},
+	})
+
+	if len(blocks) == 0 {
+		return nil
+	}
+
+	certs := make([]*x509.CertificateWithMetadata, 0, len(blocks))
+
+	for block := range blocks {
+		moreCerts, err := x509.ParseCertificatesToX509CertificateWithMetadata(block.Bytes, path)
+		if err != nil {
+			log.WithField("path", path).WithError(err).Debug("Could not parse PEM certificate block")
+			continue
+		}
+		certs = append(certs, moreCerts...)
+	}
+
+	return certs
 }
 
 // Parse an X.509 certificate from the given path (in base64 PEM or binary DER)

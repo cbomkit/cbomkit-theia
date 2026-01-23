@@ -26,6 +26,51 @@ import (
 	"testing"
 )
 
+func TestIssue140_CombinedPEMFile(t *testing.T) {
+	// A combined file containing both a private key and a certificate
+	// The certificate plugin should find the certificate even though
+	// it's in a file with a non-certificate extension
+	combinedPEM := []byte("-----BEGIN RSA PRIVATE KEY-----\n" +
+		"MIIEpAIBAAKCAQEA0Z3VS5JJcds3xfn/ygWep4PAtGoRBZ2gHaRGWJXjLN6Lxoob\n" +
+		"XRn6jNrVPGx2Smxfnwh/K7gRqRBMToBJ6MW8A3C0m7LLGVlN7XuULAlWMBuSJlr5\n" +
+		"d2pJxR3N6oFhMMUOuFMGJOjSk3CRljaKzRoSNl8lDB2L4oqI0t7bCgXBaEMH3bmd\n" +
+		"NIqnATOC/WQHmJaTmXdkHFJDOKB1GQGqSBiEOYhSq8bO8F2APbnlMHR8lhIrNNBZ\n" +
+		"m9r4fMaV1jOKDQwNjkb5MUPKk8LMPkVJfhvfAKnDnVOG2U7R7DBfaW6hEOK3liT\n" +
+		"YMEf0cfIfn3caVVhF6m7+oFMnPkwIDAQABAoIBAC5RgZ+hBx7xHNaEjMGq0vRE\n" +
+		"-----END RSA PRIVATE KEY-----\n" +
+		"-----BEGIN CERTIFICATE-----\n" +
+		"MIIB3DCCAYOgAwIBAgINAgPlfvU/k/2lCSGypjAKBggqhkjOPQQDAjBQMSQwIgYD\n" +
+		"VQQLExtHbG9iYWxTaWduIEVDQyBSb290IENBIC0gUjQxEzARBgNVBAoTCkdsb2Jh\n" +
+		"bFNpZ24xEzARBgNVBAMTCkdsb2JhbFNpZ24wHhcNMTIxMTEzMDAwMDAwWhcNMzgw\n" +
+		"MTE5MDMxNDA3WjBQMSQwIgYDVQQLExtHbG9iYWxTaWduIEVDQyBSb290IENBIC0g\n" +
+		"UjQxEzARBgNVBAoTCkdsb2JhbFNpZ24xEzARBgNVBAMTCkdsb2JhbFNpZ24wWTAT\n" +
+		"BgcqhkjOPQIBBggqhkjOPQMBBwNCAAS4xnnTj2wlDp8uORkcA6SumuU5BwkWymOx\n" +
+		"uYb4ilfBV85C+nOh92VC/x7BALJucw7/xyHlGKSq2XE/qNS5zowdo0IwQDAOBgNV\n" +
+		"HQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUVLB7rUW44kB/\n" +
+		"+wpu+74zyTyjhNUwCgYIKoZIzj0EAwIDRwAwRAIgIk90crlgr/HmnKAWBVBfw147\n" +
+		"bmF0774BxL4YSFlhgjICICadVGNA3jdgUM/I2O2dgq43mLyjj0xMqTQrbO/7lZsm\n" +
+		"-----END CERTIFICATE-----\n")
+
+	t.Run("parsePEMCertificatesFromPath finds cert in combined file", func(t *testing.T) {
+		certs := parsePEMCertificatesFromPath(combinedPEM, "test.combined")
+		assert.Len(t, certs, 1)
+		assert.Equal(t, "GlobalSign", certs[0].Subject.CommonName)
+	})
+
+	t.Run("parsePEMCertificatesFromPath returns nil for non-PEM file", func(t *testing.T) {
+		certs := parsePEMCertificatesFromPath([]byte("not a PEM file"), "test.txt")
+		assert.Nil(t, certs)
+	})
+
+	t.Run("parsePEMCertificatesFromPath returns nil for PEM with only keys", func(t *testing.T) {
+		keyOnly := []byte("-----BEGIN RSA PRIVATE KEY-----\n" +
+			"MIIEpAIBAAKCAQEA0Z3VS5JJcds3xfn/ygWep4PAtGoRBZ2gHaRGWJXjLN6Lxoob\n" +
+			"-----END RSA PRIVATE KEY-----\n")
+		certs := parsePEMCertificatesFromPath(keyOnly, "test.key")
+		assert.Nil(t, certs)
+	})
+}
+
 func TestIssue56(t *testing.T) {
 	t.Run("Issue 56", func(t *testing.T) {
 		EcdsaSha256RawCert := []byte("-----BEGIN CERTIFICATE-----\n" +
