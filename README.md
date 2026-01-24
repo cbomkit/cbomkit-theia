@@ -83,7 +83,7 @@ Use "cbomkit-theia [command] --help" for more information about a command.
 ## Prerequisites
 
 - Go 
-  - Version: `1.26` or up
+  - Version: `1.25` or up
 - Docker (or similar container runtimes)
   - Recommended: Set the `DOCKER_HOST` environment variable (default: `unix:///var/run/docker.sock`)
 
