@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	github.com/CycloneDX/cyclonedx-go v0.9.3
-	github.com/anchore/stereoscope v0.1.18
+	github.com/anchore/stereoscope v0.1.19
 	github.com/bmatcuk/doublestar/v4 v4.9.2
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/google/go-containerregistry v0.20.7

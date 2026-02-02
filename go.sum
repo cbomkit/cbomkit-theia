@@ -34,8 +34,8 @@ github.com/anchore/go-logger v0.0.0-20260122203113-ad06365ba373 h1:/8WzCw2Q8kq7y
 github.com/anchore/go-logger v0.0.0-20260122203113-ad06365ba373/go.mod h1:oFuE8YuTCM+spgMXhePGzk3asS94yO9biUfDzVTFqNw=
 github.com/anchore/go-testutils v0.0.0-20200925183923-d5f45b0d3c04 h1:VzprUTpc0vW0nnNKJfJieyH/TZ9UYAnTZs5/gHTdAe8=
 github.com/anchore/go-testutils v0.0.0-20200925183923-d5f45b0d3c04/go.mod h1:6dK64g27Qi1qGQZ67gFmBFvEHScy0/C8qhQhNe5B5pQ=
-github.com/anchore/stereoscope v0.1.18 h1:Mj34pRtxwfdFJkYKtKjiO9Xn7qs0RTCi59ofRYTSCEU=
-github.com/anchore/stereoscope v0.1.18/go.mod h1:y8P4BURfBj0DVRly9cPHsSuZdI/AsZs3ee/x/HusEe4=
+github.com/anchore/stereoscope v0.1.19 h1:1G5LVmRN1Sz6qNezpVAEeN7QfWwCE9zw9TJK1ZGnkvw=
+github.com/anchore/stereoscope v0.1.19/go.mod h1:+laNHlk05xA2YqgEzq8mxkFzclL3NRdeNIsiQQVeZZ4=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883/go.mod h1:rCTlJbsFo29Kk6CurOXKm700vrz8f0KW0JNfpkRJY/8=
 github.com/andybalholm/brotli v1.2.0 h1:ukwgCxwYrmACq68yiUqwIWnGY0cTPox/M94sVwToPjQ=
 github.com/andybalholm/brotli v1.2.0/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
