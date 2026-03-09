@@ -1,6 +1,6 @@
 module github.com/cbomkit/cbomkit-theia
 
-go 1.25.4
+go 1.26.1
 
 require (
 	github.com/CycloneDX/cyclonedx-go v0.9.3
