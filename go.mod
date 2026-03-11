@@ -7,7 +7,7 @@ require (
 	github.com/anchore/stereoscope v0.1.21
 	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/google/go-containerregistry v0.21.1
+	github.com/google/go-containerregistry v0.21.2
 	github.com/google/uuid v1.6.0
 	github.com/magiconair/properties v1.8.10
 	github.com/mitchellh/hashstructure/v2 v2.0.2
