@@ -26,6 +26,7 @@ import (
 	"github.com/cbomkit/cbomkit-theia/scanner/x509"
 	log "github.com/sirupsen/logrus"
 	"github.com/smallstep/pkcs7"
+	"github.com/spf13/viper"
 
 	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
 	scannererrors "github.com/cbomkit/cbomkit-theia/scanner/errors"
@@ -69,21 +70,23 @@ func (certificatesPlugin *Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.B
 
 	err = fs.WalkDir(
 		func(path string) (err error) {
-			exists, err := fs.Exists(path)
-			if err != nil {
-				return err
-			} else if !exists {
-				log.WithField("path", path).Warning("Certificate does not exist")
-				return nil
-			}
-
 			readCloser, err := fs.Open(path)
 			if err != nil {
-				return err
+				return nil
 			}
 			raw, err := filesystem.ReadAllAndClose(readCloser)
 			if err != nil {
-				return err
+				return nil
+			}
+
+			// Skip large files
+			maxFileSize := viper.GetInt64("keys.max_file_size")
+			if maxFileSize <= 0 {
+				maxFileSize = 1024 * 1024 // Default to 1MB
+			}
+			if int64(len(raw)) > maxFileSize {
+				log.Warnf("Skipping large file: %s (size: %d bytes)", path, len(raw))
+				return nil
 			}
 
 			switch filepath.Ext(path) {

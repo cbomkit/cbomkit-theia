@@ -66,6 +66,14 @@ func (plainFilesystem PlainFilesystem) WalkDir(fn FilePathAnalysisFunc) error {
 			return nil
 		}
 
+		if d.Type()&fs.ModeSymlink != 0 {
+			// Resolve symlink to check if target is a directory
+			target, err := os.Stat(path)
+			if err != nil || target.IsDir() {
+				return nil // skip symlinks to directories (or broken symlinks)
+			}
+		}
+
 		relativePath, err := filepath.Rel(plainFilesystem.rootPath, path)
 
 		if err != nil {
