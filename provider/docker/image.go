@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types"
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
 	log "github.com/sirupsen/logrus"
@@ -35,8 +34,8 @@ import (
 
 	"github.com/anchore/stereoscope"
 	"github.com/anchore/stereoscope/pkg/image"
-	"github.com/docker/docker/client"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
+	"github.com/moby/moby/client"
 )
 
 // ActiveImage Represents an active image (e.g., with an active client connection)
@@ -110,7 +109,7 @@ func BuildImage(dockerfilePath string) (image ActiveImage, err error) {
 	}
 	defer tar.Close()
 
-	buildOptions := types.ImageBuildOptions{
+	buildOptions := client.ImageBuildOptions{
 		Dockerfile:     filepath.Base(dockerfilePath),
 		SuppressOutput: true,
 	}
