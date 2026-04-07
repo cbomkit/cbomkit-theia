@@ -217,7 +217,7 @@ func getJDKPathFromRunCommand(dockerConfig v1.Config) (value string, ok bool) {
 				pathList := strings.Split(path, lineSeparator)
 				for i, pathElement := range pathList {
 					if strings.Contains(pathElement, "jdk") {
-						return lineSeparator + filepath.Join(pathList[:i+1]...), true
+						return strings.Join(pathList[:i+1], lineSeparator), true
 					}
 				}
 			}

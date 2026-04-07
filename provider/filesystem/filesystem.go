@@ -80,6 +80,9 @@ func (plainFilesystem PlainFilesystem) WalkDir(fn FilePathAnalysisFunc) error {
 			return err
 		}
 
+		// Normalize to forward slashes for cross-platform consistency
+		relativePath = filepath.ToSlash(relativePath)
+
 		err = fn(relativePath)
 
 		if goerrors.Is(err, scannererrors.ErrParsingFailedAlthoughChecked) {

@@ -18,6 +18,7 @@ package opensslconf
 
 import (
 	"os"
+	"os/exec"
 	"strings"
 	testing "testing"
 
@@ -100,6 +101,10 @@ func Test_UpdateBOM_adds_component(t *testing.T) {
 }
 
 func Test_parseOpenSSLConfWithDefaultCipherSuites(t *testing.T) {
+	if _, err := exec.LookPath("openssl"); err != nil {
+		t.Skip("openssl executable not found in PATH, skipping test")
+	}
+
 	content := `
 # Comment line
 [system_default_sect]
