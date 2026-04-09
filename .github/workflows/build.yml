@@ -27,10 +27,10 @@ jobs:
       uses: actions/setup-go@v6
       with:
         go-version: '1.26'
+    - name: Clean mod cache
+      run: go clean -modcache
     - name: Install dependencies
-      run: |
-        go clean -cache
-        go get ./...
+      run: go get ./...
     - name: Build and Test
       run: |
         go build -ldflags "-X github.com/cbomkit/cbomkit-theia/scanner.Version=${{github.ref_name}}" -v ./...
