@@ -28,7 +28,9 @@ jobs:
       with:
         go-version: '1.26'
     - name: Install dependencies
-      run: go get ./...
+      run: |
+        go clean -modcache
+        go get ./...
     - name: Build and Test
       run: |
         go build -ldflags "-X github.com/cbomkit/cbomkit-theia/scanner.Version=${{github.ref_name}}" -v ./...
