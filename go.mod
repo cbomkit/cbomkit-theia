@@ -6,7 +6,7 @@ require (
 	github.com/CycloneDX/cyclonedx-go v0.10.0
 	github.com/anchore/stereoscope v0.1.22
 	github.com/bmatcuk/doublestar/v4 v4.10.0
-	github.com/google/go-containerregistry v0.21.2
+	github.com/google/go-containerregistry v0.21.4
 	github.com/google/uuid v1.6.0
 	github.com/magiconair/properties v1.8.10
 	github.com/mitchellh/hashstructure/v2 v2.0.2
@@ -67,8 +67,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/cli v29.3.0+incompatible // indirect
-	github.com/docker/distribution v2.8.3+incompatible // indirect
+	github.com/docker/cli v29.3.1+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.5 // indirect
 	github.com/docker/go-connections v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
@@ -90,7 +89,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/klauspost/compress v1.18.4 // indirect
+	github.com/klauspost/compress v1.18.5 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
