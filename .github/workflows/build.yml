@@ -30,6 +30,7 @@ jobs:
     - name: Install dependencies
       run: |
         go clean -modcache
+        gom mod tidy
         go get ./...
     - name: Build and Test
       run: |
