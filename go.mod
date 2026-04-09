@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/CycloneDX/cyclonedx-go v0.10.0
-	github.com/anchore/stereoscope v0.1.21
+	github.com/anchore/stereoscope v0.1.22
 	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/google/go-containerregistry v0.21.2
 	github.com/google/uuid v1.6.0
@@ -67,7 +67,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/cli v29.2.1+incompatible // indirect
+	github.com/docker/cli v29.3.0+incompatible // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.5 // indirect
 	github.com/docker/go-connections v0.6.0 // indirect
@@ -132,7 +132,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/sylabs/sif/v2 v2.23.0 // indirect
+	github.com/sylabs/sif/v2 v2.24.0 // indirect
 	github.com/sylabs/squashfs v1.0.6 // indirect
 	github.com/tetratelabs/wazero v1.11.0 // indirect
 	github.com/therootcompany/xz v1.0.1 // indirect
