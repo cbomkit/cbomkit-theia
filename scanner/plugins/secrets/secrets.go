@@ -17,6 +17,7 @@
 package secrets
 
 import (
+	"io"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"strings"
@@ -59,7 +60,7 @@ func (*Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 		return err
 	}
 	// Detect findings
-	findings := make([]findingWithMetadata, 0)
+	components := make([]cdx.Component, 0)
 	if err := fs.WalkDir(func(path string) error {
 		// Skip large files
 		maxFileSize := viper.GetInt64("keys.max_file_size")
@@ -71,8 +72,10 @@ func (*Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 		if err != nil {
 			return nil // skip and continue
 		}
+		defer readCloser.Close()
 
-		content, err := filesystem.ReadAllAndClose(readCloser)
+		limitReader := io.LimitReader(readCloser, maxFileSize+1)
+		content, err := io.ReadAll(limitReader)
 		if err != nil {
 			log.WithField("path", path).Warn("Unable to read file")
 			return nil
@@ -80,19 +83,27 @@ func (*Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 
 		// Skip large files
 		if int64(len(content)) > maxFileSize {
-			log.Warnf("Skipping large file: %s (size: %d bytes)", path, len(content))
+			log.Warnf("Skipping large file: %s (exceeds limit of %d bytes)", path, maxFileSize)
 			return nil
 		}
 
 		fragment := detect.Fragment{Raw: string(content), FilePath: path}
 		for _, finding := range detector.Detect(fragment) {
-			findings = append(findings, findingWithMetadata{
+			findingMeta := findingWithMetadata{
 				Finding: finding,
 				raw:     content,
-			})
+			}
 			log.WithFields(log.Fields{
 				"type": finding.RuleID, "file": finding.File,
 			}).Info("Secret detected")
+
+			// Create CDX Components
+			currentComponents, err := findingMeta.getComponents()
+			if err != nil {
+				log.WithError(err).Warn("Could not add secret finding to BOM component")
+				continue
+			}
+			components = append(components, currentComponents...)
 		}
 		return nil
 	}); err != nil {
@@ -100,21 +111,11 @@ func (*Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 		return err
 	}
 
-	if len(findings) == 0 {
+	if len(components) == 0 {
 		log.Info("No secrets found.")
 		return nil
 	}
 
-	// Create CDX Components
-	components := make([]cdx.Component, 0)
-	for _, finding := range findings {
-		currentComponents, err := finding.getComponents()
-		if err != nil {
-			log.WithError(err).Warn("Could not add secret finding to BOM component")
-			continue
-		}
-		components = append(components, currentComponents...)
-	}
 	// Write  bom
 	*bom.Components = append(*bom.Components, components...)
 	return nil
