@@ -18,6 +18,7 @@ package certificates
 
 import (
 	"encoding/pem"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -70,22 +71,26 @@ func (certificatesPlugin *Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.B
 
 	err = fs.WalkDir(
 		func(path string) (err error) {
-			readCloser, err := fs.Open(path)
-			if err != nil {
-				return nil
-			}
-			raw, err := filesystem.ReadAllAndClose(readCloser)
-			if err != nil {
-				return nil
-			}
-
 			// Skip large files
 			maxFileSize := viper.GetInt64("keys.max_file_size")
 			if maxFileSize <= 0 {
 				maxFileSize = 1024 * 1024 // Default to 1MB
 			}
+
+			readCloser, err := fs.Open(path)
+			if err != nil {
+				return nil
+			}
+			defer readCloser.Close()
+
+			limitReader := io.LimitReader(readCloser, maxFileSize+1)
+			raw, err := io.ReadAll(limitReader)
+			if err != nil {
+				return nil
+			}
+
 			if int64(len(raw)) > maxFileSize {
-				log.Warnf("Skipping large file: %s (size: %d bytes)", path, len(raw))
+				log.Warnf("Skipping large file: %s (exceeds limit of %d bytes)", path, maxFileSize)
 				return nil
 			}
 
