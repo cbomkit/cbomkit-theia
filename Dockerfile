@@ -14,7 +14,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM golang:1.26-alpine AS builder
+FROM golang:1.26.1-alpine AS builder
 
 WORKDIR /app
 
@@ -28,6 +28,7 @@ ENV GOINSECURE=*
 ENV GONOSUMDB=*
 
 COPY go.mod go.sum ./
+ENV GOPROXY=https://proxy.golang.org,direct
 RUN go mod download -x
 COPY . ./
 
