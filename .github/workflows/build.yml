@@ -27,8 +27,14 @@ jobs:
       uses: actions/setup-go@v6
       with:
         go-version: '1.26'
-    - name: Install dependencies
-      run: go get ./...
+    - name: Download dependencies
+      env:
+        GOPROXY: https://proxy.golang.org,direct
+        GOSUMDB: sum.golang.org
+      run: |
+        go clean -modcache
+        go mod download -x
+        go mod verfy
     - name: Build and Test
       run: |
         go build -ldflags "-X github.com/cbomkit/cbomkit-theia/scanner.Version=${{github.ref_name}}" -v ./...
