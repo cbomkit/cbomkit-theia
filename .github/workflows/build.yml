@@ -34,7 +34,7 @@ jobs:
       run: |
         go clean -modcache
         go mod download -x
-        go mod verfy
+        go mod verify
     - name: Build and Test
       run: |
         go build -ldflags "-X github.com/cbomkit/cbomkit-theia/scanner.Version=${{github.ref_name}}" -v ./...
