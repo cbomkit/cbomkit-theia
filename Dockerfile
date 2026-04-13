@@ -23,7 +23,7 @@ RUN sed -i 's/https:/http:/g' /etc/apk/repositories && apk add --no-cache ca-cer
 
 # Set environment variables to bypass SSL verification
 ENV GIT_SSL_NO_VERIFY=true
-ENV GOPROXY=direct
+ENV GOPROXY=https://proxy.golang.org,direct
 ENV GOINSECURE=*
 ENV GONOSUMDB=*
 
