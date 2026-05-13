@@ -18,12 +18,9 @@ package main
 
 import (
 	"github.com/cbomkit/cbomkit-theia/cmd"
-	log "github.com/sirupsen/logrus"
 )
 
 // Function used to set logging and start cobra
 func main() {
-	// Create a LevelVar and set it to DEBUG
-	log.SetLevel(log.InfoLevel)
 	cmd.Execute()
 }

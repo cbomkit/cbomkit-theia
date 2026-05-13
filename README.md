@@ -70,12 +70,14 @@ Available Commands:
   image       Analyze cryptographic assets in a container image
 
 Flags:
-  -b, --bom string        BOM file to be verified and enriched
-      --config string     config file (default is $HOME/.cbomkit-theia.yaml)
-  -h, --help              help for cbomkit-theia
-      --ignore strings    file path patterns to ignore during scanning (glob syntax, e.g. 'testdata/,*.tmp')
-  -p, --plugins strings   list of plugins to use (default [certificates,javasecurity,secrets,opensslconf,keys,vex])
-      --schema string     BOM schema to validate the given BOM (default "provider/cyclonedx/bom-1.6.schema.json")
+  -b, --bom string          BOM file to be verified and enriched
+      --config string       config file (default is $HOME/.cbomkit-theia.yaml)
+      --docker-host string  Docker daemon socket (default "unix:///var/run/docker.sock")
+  -h, --help                help for cbomkit-theia
+      --ignore strings      file path patterns to ignore during scanning (glob syntax, e.g. 'testdata/,*.tmp')
+      --log-level string    log level (trace, debug, info, warn, error, fatal, panic) (default "info")
+  -p, --plugins strings     list of plugins to use (default [certificates,javasecurity,secrets,opensslconf,keys,vex])
+      --schema string       BOM schema to validate the given BOM (default "provider/cyclonedx/bom-1.6.schema.json")
 
 Use "cbomkit-theia [command] --help" for more information about a command.
 ```
