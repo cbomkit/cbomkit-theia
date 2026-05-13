@@ -25,7 +25,6 @@ import (
 	"github.com/moby/go-archive/compression"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -96,13 +95,13 @@ func BuildImage(dockerfilePath string) (image ActiveImage, err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	slog.Info("Connecting to Docker Client using API version negotiaton", "client", os.Getenv("DOCKER_HOST"))
+	log.WithField("client", os.Getenv("DOCKER_HOST")).Info("Connecting to Docker Client using API version negotiation")
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return ActiveImage{}, err
 	}
 
-	slog.Debug("Tarring directory with Dockerfile", "path", dockerfilePath)
+	log.WithField("path", dockerfilePath).Debug("Tarring directory with Dockerfile")
 	tar, err := archive.Tar(filepath.Dir(dockerfilePath), compression.Gzip)
 	if err != nil {
 		return ActiveImage{}, err
@@ -114,7 +113,7 @@ func BuildImage(dockerfilePath string) (image ActiveImage, err error) {
 		SuppressOutput: true,
 	}
 
-	slog.Info("Building Docker image", "path", dockerfilePath)
+	log.WithField("path", dockerfilePath).Info("Building Docker image")
 	imageBuildResponse, err := cli.ImageBuild(ctx, tar, buildOptions)
 	if err != nil {
 		return ActiveImage{}, err
@@ -141,7 +140,7 @@ func BuildImage(dockerfilePath string) (image ActiveImage, err error) {
 
 	imageID := getImgIDWithoutDigest(responseStruct.DigestID)
 
-	slog.Info("Docker image built successfully! ImageID", "id", imageID)
+	log.WithField("id", imageID).Info("Docker image built successfully!")
 
 	stereoscopeImage, err := stereoscope.GetImage(ctx, imageID)
 	if err != nil {

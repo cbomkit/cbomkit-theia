@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cbomkit/cbomkit-theia/scanner"
 	log "github.com/sirupsen/logrus"
@@ -31,6 +32,7 @@ var cfgFile string
 var bomFilePath string
 var activatedPlugins []string
 var ignorePatterns []string
+var logLevel string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -126,6 +128,16 @@ func init() {
 		log.Error(err)
 		return
 	}
+
+	// add log level flag
+	rootCmd.
+		PersistentFlags().
+		StringVar(&logLevel, "log-level", "info", "log level (trace, debug, info, warn, error, fatal, panic)")
+	err = viper.BindPFlag("log_level", rootCmd.PersistentFlags().Lookup("log-level"))
+	if err != nil {
+		log.Error(err)
+		return
+	}
 }
 
 const configName = "config"
@@ -150,6 +162,7 @@ func initConfig() {
 	viper.SetDefault("docker_host", "unix:///var/run/docker.sock")
 	viper.SetDefault("plugins", allPlugins)
 	viper.SetDefault("ignore", []string{})
+	viper.SetDefault("log_level", "info")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil { // Handle errors reading the config file
@@ -199,8 +212,24 @@ func initConfig() {
 		log.Error("Error in configuring cbomkit-theia: ", err)
 		return
 	}
-	// read in environment variables that match
+	// Set environment variable prefix and read in environment variables that match
+	viper.SetEnvPrefix("THEIA")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+
+	// Set log level from config/flag/env
+	SetLogLevel(viper.GetString("log_level"))
+}
+
+// SetLogLevel sets the logrus log level based on the provided string
+func SetLogLevel(levelStr string) {
+	level, err := log.ParseLevel(levelStr)
+	if err != nil {
+		log.WithField("level", levelStr).WithError(err).Warn("Invalid log level, defaulting to 'info'")
+		log.SetLevel(log.InfoLevel)
+		return
+	}
+	log.SetLevel(level)
 }
 
 func getPluginExplanations() string {

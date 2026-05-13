@@ -20,8 +20,8 @@ import (
 	"bytes"
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 	"io"
-	"log/slog"
 	"slices"
 	"time"
 )
@@ -76,7 +76,7 @@ func ParseBOM(bomReader io.Reader) (*cdx.BOM, error) {
 		return new(cdx.BOM), err
 	}
 	// Decode BOM from JSON
-	slog.Debug("Decoding BOM from JSON to GO object")
+	log.Debug("Decoding BOM from JSON to GO object")
 	bom := new(cdx.BOM)
 	decoder := cdx.NewBOMDecoder(bytes.NewReader(bomBytes), cdx.BOMFileFormatJSON)
 	err = decoder.Decode(bom)
