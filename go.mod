@@ -3,7 +3,7 @@ module github.com/cbomkit/cbomkit-theia
 go 1.26.1
 
 require (
-	github.com/CycloneDX/cyclonedx-go v0.10.0
+	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/anchore/stereoscope v0.1.23
 	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/google/go-containerregistry v0.21.5
