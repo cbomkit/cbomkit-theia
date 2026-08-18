@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-15",
+  "classicalAlgorithms": {
+    "RSA": {
+      "family": "asymmetric",
+      "primitive": "pke",
+      "quantumStatus": "quantum-vulnerable",
+      "primaryThreat": "shors-algorithm",
+      "keySizeMapping": {
+        "1024": {"classicalBits": 80, "quantumBits": 0, "nistLevel": 0},
+        "2048": {"classicalBits": 112, "quantumBits": 0, "nistLevel": 0},
+        "3072": {"classicalBits": 128, "quantumBits": 0, "nistLevel": 0},
+        "4096": {"classicalBits": 152, "quantumBits": 0, "nistLevel": 0}
+      },
+      "oids": ["1.2.840.113549.1.1.1"],
+      "recommendedReplacements": ["ML-KEM-768", "ML-KEM-1024"]
+    },
+    "ECDSA": {
+      "family": "asymmetric",
+      "primitive": "signature",
+      "quantumStatus": "quantum-vulnerable",
+      "primaryThreat": "shors-algorithm",
+      "curveMapping": {
+        "P-256": {"classicalBits": 128, "quantumBits": 0, "nistLevel": 0},
+        "P-384": {"classicalBits": 192, "quantumBits": 0, "nistLevel": 0},
+        "P-521": {"classicalBits": 256, "quantumBits": 0, "nistLevel": 0}
+      },
+      "oids": ["1.2.840.10045.2.1", "1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4"],
+      "recommendedReplacements": ["ML-DSA-65", "ML-DSA-87", "SLH-DSA-SHA2-128f"]
+    },
+    "DSA": {
+      "family": "asymmetric",
+      "primitive": "signature",
+      "quantumStatus": "quantum-vulnerable",
+      "primaryThreat": "shors-algorithm",
+      "keySizeMapping": {
+        "1024": {"classicalBits": 80, "quantumBits": 0, "nistLevel": 0},
+        "2048": {"classicalBits": 112, "quantumBits": 0, "nistLevel": 0},
+        "3072": {"classicalBits": 128, "quantumBits": 0, "nistLevel": 0}
+      },
+      "oids": ["1.2.840.10040.4.1"],
+      "recommendedReplacements": ["ML-DSA-65", "ML-DSA-87"]
+    },
+    "DH": {
+      "family": "asymmetric",
+      "primitive": "key-agreement",
+      "quantumStatus": "quantum-vulnerable",
+      "primaryThreat": "shors-algorithm",
+      "keySizeMapping": {
+        "1024": {"classicalBits": 80, "quantumBits": 0, "nistLevel": 0},
+        "2048": {"classicalBits": 112, "quantumBits": 0, "nistLevel": 0},
+        "3072": {"classicalBits": 128, "quantumBits": 0, "nistLevel": 0},
+        "4096": {"classicalBits": 152, "quantumBits": 0, "nistLevel": 0}
+      },
+      "oids": ["1.2.840.113549.1.3.1"],
+      "recommendedReplacements": ["ML-KEM-768", "X25519Kyber768"]
+    },
+    "ECDH": {
+      "family": "asymmetric",
+      "primitive": "key-agreement",
+      "quantumStatus": "quantum-vulnerable",
+      "primaryThreat": "shors-algorithm",
+      "curveMapping": {
+        "P-256": {"classicalBits": 128, "quantumBits": 0, "nistLevel": 0},
+        "P-384": {"classicalBits": 192, "quantumBits": 0, "nistLevel": 0},
+        "P-521": {"classicalBits": 256, "quantumBits": 0, "nistLevel": 0},
+        "X25519": {"classicalBits": 128, "quantumBits": 0, "nistLevel": 0}
+      },
+      "oids": ["1.2.840.10045.2.1", "1.3.101.110"],
+      "recommendedReplacements": ["ML-KEM-768", "X25519Kyber768"]
+    },
+    "Ed25519": {
+      "family": "asymmetric",
+      "primitive": "signature",
+      "quantumStatus": "quantum-vulnerable",
+      "primaryThreat": "shors-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 128, "quantumBits": 0, "nistLevel": 0},
+      "oids": ["1.3.101.112"],
+      "recommendedReplacements": ["ML-DSA-65", "SLH-DSA-SHA2-128f"]
+    },
+    "Ed448": {
+      "family": "asymmetric",
+      "primitive": "signature",
+      "quantumStatus": "quantum-vulnerable",
+      "primaryThreat": "shors-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 224, "quantumBits": 0, "nistLevel": 0},
+      "oids": ["1.3.101.113"],
+      "recommendedReplacements": ["ML-DSA-87", "SLH-DSA-SHA2-192f"]
+    },
+    "AES": {
+      "family": "symmetric",
+      "primitive": "block-cipher",
+      "quantumStatus": "quantum-partially-secure",
+      "primaryThreat": "grovers-algorithm",
+      "keySizeMapping": {
+        "128": {"classicalBits": 128, "quantumBits": 64, "nistLevel": 1},
+        "192": {"classicalBits": 192, "quantumBits": 96, "nistLevel": 2},
+        "256": {"classicalBits": 256, "quantumBits": 128, "nistLevel": 3}
+      },
+      "oids": ["2.16.840.1.101.3.4.1.1", "2.16.840.1.101.3.4.1.2", "2.16.840.1.101.3.4.1.41", "2.16.840.1.101.3.4.1.42"],
+      "recommendedReplacements": ["AES-256"],
+      "notes": "AES-256 provides ~128-bit quantum security via Grover's algorithm"
+    },
+    "ChaCha20": {
+      "family": "symmetric",
+      "primitive": "stream-cipher",
+      "quantumStatus": "quantum-resistant",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 256, "quantumBits": 128, "nistLevel": 3},
+      "oids": [],
+      "recommendedReplacements": []
+    },
+    "3DES": {
+      "family": "symmetric",
+      "primitive": "block-cipher",
+      "quantumStatus": "quantum-partially-secure",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 112, "quantumBits": 56, "nistLevel": 0},
+      "oids": ["1.2.840.113549.3.7"],
+      "recommendedReplacements": ["AES-256"],
+      "notes": "3DES is deprecated; quantum security is theoretical as algorithm is obsolete"
+    },
+    "SHA-256": {
+      "family": "hash",
+      "primitive": "hash",
+      "quantumStatus": "quantum-resistant",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 128, "quantumBits": 128, "nistLevel": 1},
+      "oids": ["2.16.840.1.101.3.4.2.1"],
+      "notes": "Hash functions maintain collision resistance under Grover's algorithm"
+    },
+    "SHA-384": {
+      "family": "hash",
+      "primitive": "hash",
+      "quantumStatus": "quantum-resistant",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 192, "quantumBits": 192, "nistLevel": 3},
+      "oids": ["2.16.840.1.101.3.4.2.2"]
+    },
+    "SHA-512": {
+      "family": "hash",
+      "primitive": "hash",
+      "quantumStatus": "quantum-resistant",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 256, "quantumBits": 256, "nistLevel": 5},
+      "oids": ["2.16.840.1.101.3.4.2.3"]
+    },
+    "SHA3-256": {
+      "family": "hash",
+      "primitive": "hash",
+      "quantumStatus": "quantum-resistant",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 128, "quantumBits": 128, "nistLevel": 1},
+      "oids": ["2.16.840.1.101.3.4.2.8"]
+    },
+    "SHA3-384": {
+      "family": "hash",
+      "primitive": "hash",
+      "quantumStatus": "quantum-resistant",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 192, "quantumBits": 192, "nistLevel": 3},
+      "oids": ["2.16.840.1.101.3.4.2.9"]
+    },
+    "SHA3-512": {
+      "family": "hash",
+      "primitive": "hash",
+      "quantumStatus": "quantum-resistant",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 256, "quantumBits": 256, "nistLevel": 5},
+      "oids": ["2.16.840.1.101.3.4.2.10"]
+    },
+    "SHA-1": {
+      "family": "hash",
+      "primitive": "hash",
+      "quantumStatus": "quantum-resistant",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 80, "quantumBits": 80, "nistLevel": 0},
+      "oids": ["1.3.14.3.2.26"],
+      "recommendedReplacements": ["SHA-256", "SHA3-256"],
+      "notes": "SHA-1 is deprecated for cryptographic use"
+    },
+    "MD5": {
+      "family": "hash",
+      "primitive": "hash",
+      "quantumStatus": "quantum-resistant",
+      "primaryThreat": "grovers-algorithm",
+      "fixedSecurityLevel": {"classicalBits": 64, "quantumBits": 64, "nistLevel": 0},
+      "oids": ["1.2.840.113549.2.5"],
+      "recommendedReplacements": ["SHA-256", "SHA3-256"],
+      "notes": "MD5 is broken and should not be used for security purposes"
+    }
+  }
+}
