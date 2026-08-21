@@ -17,9 +17,9 @@
 package secrets
 
 import (
-	"io"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"io"
 	"strings"
 
 	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
@@ -154,6 +154,11 @@ func (finding findingWithMetadata) getPrivateKeyComponent() ([]cdx.Component, er
 	for block := range blocks {
 		currentComponents, err := pem.GenerateCdxComponents(block)
 		if err != nil {
+			// The PEM block is a recognized private-key type (e.g. encrypted, or otherwise
+			// undecodable), but its contents could not be parsed into key material. Still
+			// record it as a generic secret rather than dropping a confirmed finding.
+			log.WithError(err).WithField("path", finding.File).Warn("Found private key PEM block but could not parse its key material; recording as generic secret")
+			components = append(components, finding.getGenericSecretComponent())
 			continue
 		}
 
