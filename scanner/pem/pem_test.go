@@ -17,6 +17,8 @@
 package pem
 
 import (
+	"crypto/x509/pkix"
+	"encoding/asn1"
 	"encoding/pem"
 	"testing"
 
@@ -211,12 +213,162 @@ func TestGenerateCdxComponentsPKCS8LegacyDirectPBEScheme(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error for a recognized encrypted key, got: %v", err)
 	}
-	assert.Len(t, components, 2)
+	// The encrypted-key component, plus separate cipher and KDF components: PKCS#12 Appendix B
+	// schemes fuse a KDF and a cipher into one OID, but the identity of each is still known and
+	// should be reported as two distinct algorithm components, not one fused/mistyped one.
+	assert.Len(t, components, 3)
 	props := components[0].CryptoProperties.RelatedCryptoMaterialProperties
 	assert.NotNil(t, props.SecuredBy)
 	assert.Equal(t, "Software", props.SecuredBy.Mechanism)
 	assert.Equal(t, cdx.BOMReference(components[1].BOMRef), props.SecuredBy.AlgorithmRef)
-	assert.Equal(t, "pbeWithSHAAnd3-KeyTripleDES-CBC", components[1].Name)
+
+	cipher := components[1]
+	assert.Equal(t, "DES-EDE3-CBC", cipher.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveBlockCipher, cipher.CryptoProperties.AlgorithmProperties.Primitive)
+	assert.Equal(t, cdx.CryptoAlgorithmModeCBC, cipher.CryptoProperties.AlgorithmProperties.Mode)
+
+	kdf := components[2]
+	assert.Equal(t, "PKCS#12 KDF-SHA1", kdf.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveKDF, kdf.CryptoProperties.AlgorithmProperties.Primitive)
+}
+
+// pbeWithSHAAnd128BitRC4 fuses a stream cipher (RC4) into its OID, unlike every other legacy PBE
+// scheme, which fuses a block cipher. Its cipher component must be tagged CryptoPrimitiveStreamCipher,
+// not CryptoPrimitiveBlockCipher. The EncryptedPrivateKeyInfo DER is built directly via asn1.Marshal
+// (rather than a captured openssl fixture) since only the outer AlgorithmIdentifier OID matters here.
+func TestGenerateCdxComponentsPKCS8LegacyRC4Scheme(t *testing.T) {
+	type pbeParameter struct {
+		Salt           []byte
+		IterationCount int
+	}
+	type encryptedPrivateKeyInfo struct {
+		Algorithm pkix.AlgorithmIdentifier
+		Encrypted []byte
+	}
+
+	params, err := asn1.Marshal(pbeParameter{Salt: []byte{1, 2, 3, 4, 5, 6, 7, 8}, IterationCount: 2048})
+	if err != nil {
+		t.Fatalf("failed to marshal PBEParameter: %v", err)
+	}
+	der, err := asn1.Marshal(encryptedPrivateKeyInfo{
+		Algorithm: pkix.AlgorithmIdentifier{
+			Algorithm:  asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 12, 1, 1}, // pbeWithSHAAnd128BitRC4
+			Parameters: asn1.RawValue{FullBytes: params},
+		},
+		Encrypted: []byte{0xAA, 0xBB, 0xCC, 0xDD},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal EncryptedPrivateKeyInfo: %v", err)
+	}
+
+	components := pkcs8EncryptionComponents(der)
+	assert.Len(t, components, 3)
+
+	cipher := components[1]
+	assert.Equal(t, "RC4-128", cipher.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveStreamCipher, cipher.CryptoProperties.AlgorithmProperties.Primitive)
+	assert.Empty(t, cipher.CryptoProperties.AlgorithmProperties.Mode)
+
+	kdf := components[2]
+	assert.Equal(t, "PKCS#12 KDF-SHA1", kdf.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveKDF, kdf.CryptoProperties.AlgorithmProperties.Primitive)
+}
+
+// pbeWithSHA1AndRC2-CBC (RFC 8018 §6.1 PBES1) is one of the four PBES1/PKCS#12 gaps previously
+// missing from the OID table, falling back to a raw dotted-OID placeholder name. DER built via
+// asn1.Marshal since legacyPBEComponents never inspects Parameters, only the outer OID.
+func TestGenerateCdxComponentsPKCS8PBES1RC2Scheme(t *testing.T) {
+	type encryptedPrivateKeyInfo struct {
+		Algorithm pkix.AlgorithmIdentifier
+		Encrypted []byte
+	}
+
+	der, err := asn1.Marshal(encryptedPrivateKeyInfo{
+		Algorithm: pkix.AlgorithmIdentifier{
+			Algorithm: asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 5, 11}, // pbeWithSHA1AndRC2-CBC
+		},
+		Encrypted: []byte{0xAA, 0xBB, 0xCC, 0xDD},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal EncryptedPrivateKeyInfo: %v", err)
+	}
+
+	components := pkcs8EncryptionComponents(der)
+	assert.Len(t, components, 3)
+
+	cipher := components[1]
+	assert.Equal(t, "RC2-CBC", cipher.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveBlockCipher, cipher.CryptoProperties.AlgorithmProperties.Primitive)
+	assert.Equal(t, cdx.CryptoAlgorithmModeCBC, cipher.CryptoProperties.AlgorithmProperties.Mode)
+
+	kdf := components[2]
+	assert.Equal(t, "PBKDF1-SHA1", kdf.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveKDF, kdf.CryptoProperties.AlgorithmProperties.Primitive)
+}
+
+// AES-128-OFB is one of the AES-CFB/OFB cipher-scheme OIDs previously missing from the PBES2
+// cipher table. DER built via asn1.Marshal to exercise the full PBES2 KDF/cipher unwrap path.
+func TestGenerateCdxComponentsPKCS8PBES2AESOFBCipher(t *testing.T) {
+	type pbes2Params struct {
+		KDF    pkix.AlgorithmIdentifier
+		Cipher pkix.AlgorithmIdentifier
+	}
+	type encryptedPrivateKeyInfo struct {
+		Algorithm pkix.AlgorithmIdentifier
+		Encrypted []byte
+	}
+
+	saltDER, err := asn1.Marshal([]byte{1, 2, 3, 4, 5, 6, 7, 8})
+	if err != nil {
+		t.Fatalf("failed to marshal salt: %v", err)
+	}
+	kdfParams, err := asn1.Marshal(pbkdf2Params{
+		Salt:           asn1.RawValue{FullBytes: saltDER},
+		IterationCount: 2048,
+		PRF:            pkix.AlgorithmIdentifier{Algorithm: asn1.ObjectIdentifier{1, 2, 840, 113549, 2, 9}}, // HMAC-SHA256
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal PBKDF2-params: %v", err)
+	}
+	ivDER, err := asn1.Marshal(make([]byte, 16))
+	if err != nil {
+		t.Fatalf("failed to marshal IV: %v", err)
+	}
+	schemeParams, err := asn1.Marshal(pbes2Params{
+		KDF: pkix.AlgorithmIdentifier{
+			Algorithm:  asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 5, 12}, // PBKDF2
+			Parameters: asn1.RawValue{FullBytes: kdfParams},
+		},
+		Cipher: pkix.AlgorithmIdentifier{
+			Algorithm:  asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 1, 3}, // AES-128-OFB
+			Parameters: asn1.RawValue{FullBytes: ivDER},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal PBES2-params: %v", err)
+	}
+	der, err := asn1.Marshal(encryptedPrivateKeyInfo{
+		Algorithm: pkix.AlgorithmIdentifier{
+			Algorithm:  asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 5, 13}, // PBES2
+			Parameters: asn1.RawValue{FullBytes: schemeParams},
+		},
+		Encrypted: []byte{0xAA, 0xBB, 0xCC, 0xDD},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal EncryptedPrivateKeyInfo: %v", err)
+	}
+
+	components := pkcs8EncryptionComponents(der)
+	assert.Len(t, components, 3)
+
+	cipher := components[1]
+	assert.Equal(t, "AES-128-OFB", cipher.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveBlockCipher, cipher.CryptoProperties.AlgorithmProperties.Primitive)
+	assert.Equal(t, cdx.CryptoAlgorithmModeOFB, cipher.CryptoProperties.AlgorithmProperties.Mode)
+
+	kdf := components[2]
+	assert.Equal(t, "PBKDF2-HMAC-SHA256", kdf.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveKDF, kdf.CryptoProperties.AlgorithmProperties.Primitive)
 }
 
 func TestGenerateCdxComponentsUnencryptedMalformedKeyStillErrors(t *testing.T) {
@@ -225,6 +377,156 @@ func TestGenerateCdxComponentsUnencryptedMalformedKeyStillErrors(t *testing.T) {
 	raw := []byte("-----BEGIN RSA PRIVATE KEY-----\n" +
 		"MAA=\n" +
 		"-----END RSA PRIVATE KEY-----")
+
+	block, _ := pem.Decode(raw)
+	if block == nil {
+		t.Fatal("failed to decode test PEM block")
+	}
+
+	_, err := GenerateCdxComponents(block)
+	assert.Error(t, err)
+}
+
+func TestGenerateCdxComponentsOpenSSHPassphraseProtectedKey(t *testing.T) {
+	// Generated with: ssh-keygen -t ed25519 -N testpassphrase -C "" -f id_ed25519
+	raw := []byte("-----BEGIN OPENSSH PRIVATE KEY-----\n" +
+		"b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABBP9T2L6v\n" +
+		"A4w3OyEHctq1TkAAAAGAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIJv1oucckQBNTvBJ\n" +
+		"0wWhQDQzAMnGrii5VNlW1OgxCy2jAAAAkFy5+5SOjbvYfbO99XJYoLwN6jJ26J6GQjjJ56\n" +
+		"hwb3tLrcYTEQvLSC1n/rTF9mAp7k+X6Vw9I8M+CT40LzidTiPklIb93LugCub4hsNF88GH\n" +
+		"DQeuQfIfFs2J3vdwb5OQ8805LQi2L1NEB/buHGBzuigSeKg7qzyfWcagXqVPWWgbkogDAY\n" +
+		"VgHG4i9Ak2G+wwLg==\n" +
+		"-----END OPENSSH PRIVATE KEY-----")
+
+	block, _ := pem.Decode(raw)
+	if block == nil {
+		t.Fatal("failed to decode test PEM block")
+	}
+
+	components, err := GenerateCdxComponents(block)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	assert.Len(t, components, 4)
+
+	cipher := components[1]
+	assert.Equal(t, "AES-256-CTR", cipher.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveBlockCipher, cipher.CryptoProperties.AlgorithmProperties.Primitive)
+	assert.Equal(t, cdx.CryptoAlgorithmModeCTR, cipher.CryptoProperties.AlgorithmProperties.Mode)
+
+	kdf := components[2]
+	assert.Equal(t, "bcrypt", kdf.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveKDF, kdf.CryptoProperties.AlgorithmProperties.Primitive)
+
+	key := components[0]
+	assert.Equal(t, cdx.CryptoAssetTypeRelatedCryptoMaterial, key.CryptoProperties.AssetType)
+	assert.Equal(t, cdx.RelatedCryptoMaterialTypePrivateKey, key.CryptoProperties.RelatedCryptoMaterialProperties.Type)
+	assert.Equal(t, cdx.BOMReference(cipher.BOMRef), key.CryptoProperties.RelatedCryptoMaterialProperties.SecuredBy.AlgorithmRef)
+
+	pubKey := components[3]
+	assert.Equal(t, "ED25519", pubKey.Name)
+	assert.Equal(t, cdx.CryptoAssetTypeRelatedCryptoMaterial, pubKey.CryptoProperties.AssetType)
+	assert.Equal(t, cdx.RelatedCryptoMaterialTypePublicKey, pubKey.CryptoProperties.RelatedCryptoMaterialProperties.Type)
+}
+
+// chacha20-poly1305@openssh.com is an AEAD construction with no applicable CryptoAlgorithmMode, so
+// its extra detail is carried in ParameterSetIdentifier/CryptoFunctions instead.
+func TestGenerateCdxComponentsOpenSSHChaCha20Poly1305(t *testing.T) {
+	// Generated with: ssh-keygen -t ed25519 -N testpassphrase -Z chacha20-poly1305@openssh.com -C "" -f id_ed25519
+	raw := []byte("-----BEGIN OPENSSH PRIVATE KEY-----\n" +
+		"b3BlbnNzaC1rZXktdjEAAAAAHWNoYWNoYTIwLXBvbHkxMzA1QG9wZW5zc2guY29tAAAABm\n" +
+		"JjcnlwdAAAABgAAAAQm7/o2GzGJpuJLhCPlLU/sQAAABgAAAABAAAAMwAAAAtzc2gtZWQy\n" +
+		"NTUxOQAAACA4QVdzvb4HCqCZj4tXu7S0hIboW57NfXUcX07lYAeYOgAAAIjMByPI6RD6cK\n" +
+		"8Nonbb0y4H0T2nX3wE9BvtUSkXGHD4W3SuYTGVSLHAS+2JUFriSzhSFbQTQUpTb2OlYSr1\n" +
+		"/rJ9hLF35XVa2nt0DGD8IIA3muW2Dz/mW60ny+nBCUw0YIZ3VEb7EZLEUWZOXL3wOy8BJW\n" +
+		"0lvw8bYXJruIE+ThGcML65RSBi013vs1hBBlFC83KijtS5SVW2Aw==\n" +
+		"-----END OPENSSH PRIVATE KEY-----")
+
+	block, _ := pem.Decode(raw)
+	if block == nil {
+		t.Fatal("failed to decode test PEM block")
+	}
+
+	components, err := GenerateCdxComponents(block)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	assert.Len(t, components, 4)
+
+	cipher := components[1]
+	assert.Equal(t, "ChaCha20-Poly1305", cipher.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveAE, cipher.CryptoProperties.AlgorithmProperties.Primitive)
+	assert.Equal(t, "512-bit key (two 256-bit ChaCha20 subkeys: payload+MAC, length field), 64-bit sequence-number nonce, 128-bit tag", cipher.CryptoProperties.AlgorithmProperties.ParameterSetIdentifier)
+	if assert.NotNil(t, cipher.CryptoProperties.AlgorithmProperties.CryptoFunctions) {
+		assert.ElementsMatch(t,
+			[]cdx.CryptoFunction{cdx.CryptoFunctionEncrypt, cdx.CryptoFunctionDecrypt, cdx.CryptoFunctionTag},
+			*cipher.CryptoProperties.AlgorithmProperties.CryptoFunctions)
+	}
+
+	pubKey := components[3]
+	assert.Equal(t, "ED25519", pubKey.Name)
+}
+
+// Some tools mislabel a PKCS8 EncryptedPrivateKeyInfo as "PRIVATE KEY" instead of the standard
+// "ENCRYPTED PRIVATE KEY". x509.ParsePKCS8PrivateKey then fails, but the content is still
+// recognizably encrypted PKCS8 (its outer SEQUENCE decodes as AlgorithmIdentifier+OCTET STRING,
+// not the version-INTEGER-first shape of a real PrivateKeyInfo), so it should still be enriched
+// rather than falling back to a generic secret.
+func TestGenerateCdxComponentsMislabeledEncryptedPKCS8Key(t *testing.T) {
+	// Same DER as TestGenerateCdxComponentsPKCS8EncryptedKey, wrapped in a "PRIVATE KEY" label.
+	raw := []byte("-----BEGIN PRIVATE KEY-----\n" +
+		"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\n" +
+		"-----END PRIVATE KEY-----")
+
+	block, _ := pem.Decode(raw)
+	if block == nil {
+		t.Fatal("failed to decode test PEM block")
+	}
+	assert.Equal(t, "PRIVATE KEY", block.Type)
+
+	components, err := GenerateCdxComponents(block)
+	if err != nil {
+		t.Fatalf("expected no error for a mislabeled encrypted key, got: %v", err)
+	}
+	assert.Len(t, components, 3)
+	assert.Equal(t, cdx.CryptoAssetTypeRelatedCryptoMaterial, components[0].CryptoProperties.AssetType)
+	assert.Equal(t, cdx.RelatedCryptoMaterialTypePrivateKey, components[0].CryptoProperties.RelatedCryptoMaterialProperties.Type)
+}
+
+// A "PRIVATE KEY" block that is neither a valid PrivateKeyInfo nor shaped like an
+// EncryptedPrivateKeyInfo is genuinely malformed, not encrypted, and must still surface as an
+// error rather than being misidentified as an encrypted key.
+func TestGenerateCdxComponentsUnencryptedMalformedPKCS8KeyStillErrors(t *testing.T) {
+	raw := []byte("-----BEGIN PRIVATE KEY-----\n" +
+		"MAA=\n" +
+		"-----END PRIVATE KEY-----")
 
 	block, _ := pem.Decode(raw)
 	if block == nil {
