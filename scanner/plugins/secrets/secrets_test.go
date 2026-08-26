@@ -66,3 +66,36 @@ func TestPrivateKey(t *testing.T) {
 	assert.Equal(t, *keyComponent.CryptoProperties.RelatedCryptoMaterialProperties.Size, 2048)
 	assert.Equal(t, keyComponent.CryptoProperties.OID, "1.2.840.113549.1.1.1")
 }
+
+// A PEM block recognized as a private key type whose body cannot be parsed (e.g. because it is
+// password-encrypted) must still be reported as a generic secret rather than dropped entirely.
+func TestEncryptedPrivateKeyFallsBackToGenericSecret(t *testing.T) {
+	detector, err := detect.NewDetectorDefaultConfig()
+	if err != nil {
+		t.Fail()
+		return
+	}
+
+	encryptedPrivateKeyRaw := "-----BEGIN RSA PRIVATE KEY-----\nProc-Type: 4,ENCRYPTED\nDEK-Info: DES-EDE3-CBC,BA26229A1653B7FF\n\n2i5PgUsjTMVjyLog9C0BgFyMOBAujM3zwSAr4W2vsIjMHY2Rm4gtLQ0hIhc8dGWH\nJXOAK67UlwiXwmVfbXqI4G3AZS0i5r+wIugRxjejWFRMEubvsMd5D8vqHmYhoBM+\nOw+PmVwq9pRXQhIWuUBznHevWZeSFHmSjcSlM9BFV2rn3zvS4bMoIU00OoZplVKp\n-----END RSA PRIVATE KEY-----"
+
+	fragment := detect.Fragment{Raw: encryptedPrivateKeyRaw, FilePath: "encrypted-key.pem"}
+	findings := detector.Detect(fragment)
+	assert.Len(t, findings, 1)
+	assert.Equal(t, findings[0].RuleID, "private-key")
+
+	findingWithMeta := findingWithMetadata{
+		Finding: findings[0],
+		raw:     []byte(encryptedPrivateKeyRaw),
+	}
+
+	components, err := findingWithMeta.getComponents()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	// The encrypted-key component, plus a standalone algorithm component for its cipher
+	// referenced via SecuredBy.AlgorithmRef.
+	assert.Len(t, components, 2)
+	assert.Equal(t, components[0].CryptoProperties.AssetType, cdx.CryptoAssetTypeRelatedCryptoMaterial)
+	assert.Equal(t, components[0].CryptoProperties.RelatedCryptoMaterialProperties.Type, cdx.RelatedCryptoMaterialTypePrivateKey)
+}
