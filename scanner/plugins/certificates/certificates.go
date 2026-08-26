@@ -189,11 +189,14 @@ func parseX509CertFromPath(raw []byte, path string) ([]*x509.CertificateWithMeta
 	return certs, nil
 }
 
-// Parse X.509 certificates from a PKCS7 file (base64 PEM format)
+// Parse X.509 certificates from a PKCS7 file (PEM or raw DER format)
 func parsePKCS7FromPath(raw []byte, path string) ([]*x509.CertificateWithMetadata, error) {
-	block, _ := pem.Decode(raw)
+	der := raw
+	if block, _ := pem.Decode(raw); block != nil {
+		der = block.Bytes
+	}
 
-	pkcs7Object, err := pkcs7.Parse(block.Bytes)
+	pkcs7Object, err := pkcs7.Parse(der)
 	if err != nil || pkcs7Object == nil {
 		return make([]*x509.CertificateWithMetadata, 0), err
 	}
