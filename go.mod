@@ -8,7 +8,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/google/go-containerregistry v0.21.7
 	github.com/google/uuid v1.6.0
-	github.com/magiconair/properties v1.8.10
+	github.com/magiconair/properties v1.18.11
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/moby/go-archive v0.2.0
 	github.com/moby/moby/client v0.5.0
@@ -146,8 +146,8 @@ require (
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260122232226-8e98ce8d340d // indirect
-	google.golang.org/grpc v1.79.3 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260406210006-6f92a3bedf2d // indirect
+	google.golang.org/grpc v1.80.0 // indirect
+	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
