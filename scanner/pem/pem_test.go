@@ -56,6 +56,75 @@ func TestGenerateCdxComponentsLegacyEncryptedRSAKey(t *testing.T) {
 	assert.Equal(t, cdx.CryptoAlgorithmModeCBC, cipher.CryptoProperties.AlgorithmProperties.Mode)
 }
 
+// A "DSA PRIVATE KEY" block using the same legacy Proc-Type/DEK-Info encryption headers as RSA/EC
+// must be recognized as encrypted (ssh.ParseDSAPrivateKey fails on the still-encrypted DER bytes,
+// falling back to legacyEncryptionComponents) rather than surfacing as a parse error.
+func TestGenerateCdxComponentsLegacyEncryptedDSAKey(t *testing.T) {
+	raw := []byte("-----BEGIN DSA PRIVATE KEY-----\n" +
+		"Proc-Type: 4,ENCRYPTED\n" +
+		"DEK-Info: DES-EDE3-CBC,FDFD1A43682FAABB\n\n" +
+		"oMZ+j1zeNM8MrTpshhpEwY6ztMShrs+8ei8kQvYPPGUD+Wcv5uldiQNrl396YjJ8\n" +
+		"-----END DSA PRIVATE KEY-----")
+
+	block, _ := pem.Decode(raw)
+	if block == nil {
+		t.Fatal("failed to decode test PEM block")
+	}
+
+	components, err := GenerateCdxComponents(block)
+	if err != nil {
+		t.Fatalf("expected no error for a recognized encrypted key, got: %v", err)
+	}
+	assert.Len(t, components, 2)
+
+	props := components[0].CryptoProperties.RelatedCryptoMaterialProperties
+	assert.Equal(t, cdx.RelatedCryptoMaterialTypePrivateKey, props.Type)
+	assert.NotNil(t, props.SecuredBy)
+	assert.Equal(t, cdx.BOMReference(components[1].BOMRef), props.SecuredBy.AlgorithmRef)
+
+	cipher := components[1]
+	assert.Equal(t, "DES-EDE3-CBC", cipher.Name)
+	assert.Equal(t, cdx.CryptoPrimitiveBlockCipher, cipher.CryptoProperties.AlgorithmProperties.Primitive)
+	assert.Equal(t, cdx.CryptoAlgorithmModeCBC, cipher.CryptoProperties.AlgorithmProperties.Mode)
+}
+
+func TestGenerateCdxComponentsDSAPrivateKey(t *testing.T) {
+	// Generated with: openssl dsaparam 1024 | openssl gendsa /dev/stdin
+	raw := []byte("-----BEGIN DSA PRIVATE KEY-----\n" +
+		"MIIBvAIBAAKBgQDvquY4+Og2XpdGr4Ohh2A8i97aSbOT2MsZnKQtfRPAL79Lc6bA\n" +
+		"1/FbXCne9UV66S0u4Kw2sfEGl6QoSg+5paGoIkrX4k1NAdRKFomwu4o1ZqVjGvyR\n" +
+		"Oc9WJDzZT5ubjSgSs6ZUm2R0D+gJWOanYsmQPNhN/jWYLVUPblVwvGNq3wIVAJVw\n" +
+		"Ki31WeGrebE38d2qmzaytgylAoGBAIW16b3eml45cAsmGgSxkcQQ2lNxS4RmlJAV\n" +
+		"3JPBdqtqWQaGwKxdcM1zftIRjIFp2tfiBhqKxWzYCQjW7KGo+bDs/UyWz38+VyQf\n" +
+		"WK4xNnNluizb1J9ojIu+Z6ENPaKFFlRdjG600Gt6YjjV9wA7OCPRKm+wkDlmbBVW\n" +
+		"QYnb8UwxAoGBAKTUzFzLN+pduKGmtNgoskPfqPuht2I/N9qVdT50bbQT2ZNAlah6\n" +
+		"4aYCsZbr5dCfyYuM4X5Pe2G9XwHp11hlTv6SldasiiA1YMV8onXLDmKsInkoEn40\n" +
+		"CcoN8wIJjxuZXjFHslOuBo+lSXz1f0WhTStt3gsw7a1jTQN1C89ntsO6AhRayeq0\n" +
+		"EorEkBsWhQl+1AbpAaPNEA==\n" +
+		"-----END DSA PRIVATE KEY-----")
+
+	block, _ := pem.Decode(raw)
+	if block == nil {
+		t.Fatal("failed to decode test PEM block")
+	}
+
+	components, err := GenerateCdxComponents(block)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	assert.Len(t, components, 2)
+
+	privKey := components[0]
+	assert.Equal(t, "DSA", privKey.Name)
+	assert.Equal(t, cdx.RelatedCryptoMaterialTypePrivateKey, privKey.CryptoProperties.RelatedCryptoMaterialProperties.Type)
+	assert.NotNil(t, privKey.CryptoProperties.RelatedCryptoMaterialProperties.Size)
+
+	pubKey := components[1]
+	assert.Equal(t, "DSA", pubKey.Name)
+	assert.Equal(t, cdx.RelatedCryptoMaterialTypePublicKey, pubKey.CryptoProperties.RelatedCryptoMaterialProperties.Type)
+	assert.NotEmpty(t, pubKey.CryptoProperties.RelatedCryptoMaterialProperties.Value)
+}
+
 func TestGenerateCdxComponentsPKCS8EncryptedKey(t *testing.T) {
 	// EncryptedPrivateKeyInfo using PBES2 with PBKDF2 and aes-256-CBC-PAD, generated via
 	// `openssl genpkey -algorithm RSA | openssl pkcs8 -topk8 -v2 aes-256-cbc`.
