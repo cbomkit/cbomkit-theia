@@ -27,6 +27,7 @@ import (
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	gitleaksConfig "github.com/zricethezav/gitleaks/v8/config"
 	"github.com/zricethezav/gitleaks/v8/detect"
 	"github.com/zricethezav/gitleaks/v8/report"
 )
@@ -55,7 +56,7 @@ type findingWithMetadata struct {
 }
 
 func (*Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
-	detector, err := detect.NewDetectorDefaultConfig()
+	detector, err := newSecretsDetector()
 	if err != nil {
 		return err
 	}
@@ -119,6 +120,49 @@ func (*Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 	// Write  bom
 	*bom.Components = append(*bom.Components, components...)
 	return nil
+}
+
+// newSecretsDetector keeps Gitleaks' detection rules and content allowlists, but
+// leaves file exclusion to the filesystem's explicit ignore patterns. Gitleaks'
+// default global allowlist otherwise suppresses all findings under paths such as
+// node_modules, even when the user has not ignored them in Theia.
+func newSecretsDetector() (*detect.Detector, error) {
+	defaultDetector, err := detect.NewDetectorDefaultConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := defaultDetector.Config
+	globalAllowlists := make([]*gitleaksConfig.Allowlist, 0, len(cfg.Allowlists))
+	for _, allowlist := range cfg.Allowlists {
+		if len(allowlist.Paths) == 0 {
+			globalAllowlists = append(globalAllowlists, allowlist)
+			continue
+		}
+		// An AND allowlist with a path condition cannot retain its original
+		// meaning after removing the path, so discard it instead.
+		if allowlist.MatchCondition == gitleaksConfig.AllowlistMatchAnd {
+			continue
+		}
+
+		withoutPaths := &gitleaksConfig.Allowlist{
+			Description:    allowlist.Description,
+			MatchCondition: allowlist.MatchCondition,
+			Commits:        allowlist.Commits,
+			RegexTarget:    allowlist.RegexTarget,
+			Regexes:        allowlist.Regexes,
+			StopWords:      allowlist.StopWords,
+		}
+		if len(withoutPaths.Commits) == 0 && len(withoutPaths.Regexes) == 0 && len(withoutPaths.StopWords) == 0 {
+			continue
+		}
+		if err := withoutPaths.Validate(); err != nil {
+			return nil, err
+		}
+		globalAllowlists = append(globalAllowlists, withoutPaths)
+	}
+	cfg.Allowlists = globalAllowlists
+	return detect.NewDetector(cfg), nil
 }
 
 func (finding findingWithMetadata) getComponents() ([]cdx.Component, error) {
