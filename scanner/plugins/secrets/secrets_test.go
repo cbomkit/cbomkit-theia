@@ -17,15 +17,47 @@
 package secrets
 
 import (
+	"bytes"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
 	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/zricethezav/gitleaks/v8/detect"
-	"os"
-	"path/filepath"
-	"testing"
 )
+
+func TestConfiguredFileSizeSurvivesGitleaksInitialization(t *testing.T) {
+	viper.Reset()
+	t.Cleanup(viper.Reset)
+	viper.SetConfigType("yaml")
+	if err := viper.ReadConfig(strings.NewReader("keys:\n  max_file_size: 2097152\nscanner:\n  marker: preserved\n")); err != nil {
+		t.Fatal(err)
+	}
+
+	key, err := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "private_key", "dir", "rsa.pem"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := append(key, bytes.Repeat([]byte("x"), 1<<20)...)
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "large-key.pem"), content, 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	components := []cdx.Component{}
+	bom := &cdx.BOM{Components: &components}
+	if err := (&Plugin{}).UpdateBOM(filesystem.NewPlainFilesystem(dir), bom); err != nil {
+		t.Fatal(err)
+	}
+	assert.NotEmpty(t, components, "secret in a file above the default 1 MB limit should be detected")
+	assert.EqualValues(t, 2<<20, viper.GetInt64("keys.max_file_size"))
+	assert.Equal(t, "preserved", viper.GetString("scanner.marker"))
+}
 
 func TestUpdateBOMScansNodeModulesUnlessIgnored(t *testing.T) {
 	root := t.TempDir()
