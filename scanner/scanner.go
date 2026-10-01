@@ -28,6 +28,7 @@ import (
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/certificates"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/javasecurity"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/opensslconf"
+	"github.com/cbomkit/cbomkit-theia/scanner/plugins/pqcreadiness"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/problematicca"
 	"github.com/cbomkit/cbomkit-theia/scanner/plugins/secrets"
 	log "github.com/sirupsen/logrus"
@@ -62,6 +63,7 @@ func GetAllPluginConstructors() map[string]pluginpackage.PluginConstructor {
 		"secrets":        secrets.NewSecretsPlugin,
 		"opensslconf":    opensslconf.NewOpenSSLConfPlugin,
 		"problematicca":  problematicca.NewProblematicCAPlugin,
+		"pqcreadiness":   pqcreadiness.NewPQCReadinessPlugin,
 	}
 }
 
