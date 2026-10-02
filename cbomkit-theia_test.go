@@ -68,6 +68,28 @@ func TestSingleCertificate(t *testing.T) {
 	}
 }
 
+func TestMLDSACertificates(t *testing.T) {
+	bom, err := runScanAndReceiveCBOM("/mldsa_certificate")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, *bom)
+
+	// The directory has one certificate for each ML-DSA parameter set, all of them should be in the CBOM
+	if !assert.NotNil(t, bom.Components) {
+		return
+	}
+	collectedSignatureAlgorithms := make(map[string]bool)
+	for _, component := range *bom.Components {
+		if component.CryptoProperties == nil || component.CryptoProperties.AssetType != cdx.CryptoAssetTypeCertificate {
+			continue
+		}
+		signatureAlgorithm := cyclonedx.GetByBomRef(component.CryptoProperties.CertificateProperties.SignatureAlgorithmRef, bom.Components)
+		if assert.NotNil(t, signatureAlgorithm) {
+			collectedSignatureAlgorithms[signatureAlgorithm.Name] = true
+		}
+	}
+	assert.Equal(t, map[string]bool{"ML-DSA-44": true, "ML-DSA-65": true, "ML-DSA-87": true}, collectedSignatureAlgorithms)
+}
+
 func TestPrivateKey(t *testing.T) {
 	bom, err := runScanAndReceiveCBOM("/private_key")
 	assert.NoError(t, err)

@@ -18,11 +18,17 @@ package certificates
 
 import (
 	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/asn1"
+	"encoding/base64"
+	"encoding/pem"
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
+	scannererrors "github.com/cbomkit/cbomkit-theia/scanner/errors"
 	x509lib "github.com/cbomkit/cbomkit-theia/scanner/x509"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -148,4 +154,191 @@ func TestIssue56(t *testing.T) {
 			t.Fail()
 		}
 	})
+}
+
+func TestIssue227_MLDSACertificates(t *testing.T) {
+	// The example certificates from RFC 9881, see: https://www.rfc-editor.org/rfc/rfc9881.html
+	tests := []struct {
+		file         string
+		name         string
+		parameterSet string
+		oid          string
+		keySize      int
+	}{
+		{"mldsa44.pem", "ML-DSA-44", "44", "2.16.840.1.101.3.4.3.17", 1312 * 8},
+		{"mldsa65.pem", "ML-DSA-65", "65", "2.16.840.1.101.3.4.3.18", 1952 * 8},
+		{"mldsa87.pem", "ML-DSA-87", "87", "2.16.840.1.101.3.4.3.19", 2592 * 8},
+	}
+	cryptoFunctions := &[]cdx.CryptoFunction{cdx.CryptoFunctionKeygen, cdx.CryptoFunctionSign, cdx.CryptoFunctionVerify}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			path := filepath.Join("../../../testdata/mldsa_certificate/dir", test.file)
+			raw, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			certs, err := parseX509CertFromPath(raw, path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !assert.Len(t, certs, 1) {
+				return
+			}
+
+			// The certificate should not be dropped because crypto/x509 does not know the algorithm
+			components, dependencyMap, err := x509lib.GenerateCdxComponents(certs[0])
+			if err != nil {
+				t.Fatal(err)
+			}
+			bom := cdx.NewBOM()
+			cyclonedx.AddComponents(bom, *components)
+			cyclonedx.AddDependencies(bom, *dependencyMap)
+
+			foundCertificate := false
+			for _, component := range *bom.Components {
+				if component.CryptoProperties.AssetType != cdx.CryptoAssetTypeCertificate {
+					continue
+				}
+				foundCertificate = true
+				assert.Equal(t, "LAMPS WG", component.Name)
+
+				signatureAlgorithm := cyclonedx.GetByBomRef(component.CryptoProperties.CertificateProperties.SignatureAlgorithmRef, bom.Components)
+				if assert.NotNil(t, signatureAlgorithm) {
+					assert.Equal(t, test.name, signatureAlgorithm.Name)
+					assert.Equal(t, test.oid, signatureAlgorithm.CryptoProperties.OID)
+					assert.Equal(t, test.parameterSet, signatureAlgorithm.CryptoProperties.AlgorithmProperties.ParameterSetIdentifier)
+					assert.Equal(t, cdx.CryptoPrimitiveSignature, signatureAlgorithm.CryptoProperties.AlgorithmProperties.Primitive)
+					assert.Equal(t, cryptoFunctions, signatureAlgorithm.CryptoProperties.AlgorithmProperties.CryptoFunctions)
+				}
+
+				publicKey := cyclonedx.GetByBomRef(component.CryptoProperties.CertificateProperties.SubjectPublicKeyRef, bom.Components)
+				if assert.NotNil(t, publicKey) {
+					assert.Equal(t, test.name, publicKey.Name)
+					assert.Equal(t, test.oid, publicKey.CryptoProperties.OID)
+					assert.Equal(t, cdx.RelatedCryptoMaterialTypePublicKey, publicKey.CryptoProperties.RelatedCryptoMaterialProperties.Type)
+					assert.Equal(t, test.keySize, *publicKey.CryptoProperties.RelatedCryptoMaterialProperties.Size)
+					// The value is the DER encoded SubjectPublicKeyInfo, so the format should not be PEM
+					assert.Equal(t, "DER", publicKey.CryptoProperties.RelatedCryptoMaterialProperties.Format)
+					assert.Equal(t, base64.StdEncoding.EncodeToString(certs[0].RawSubjectPublicKeyInfo), publicKey.CryptoProperties.RelatedCryptoMaterialProperties.Value)
+
+					publicKeyAlgorithm := cyclonedx.GetByBomRef(publicKey.CryptoProperties.RelatedCryptoMaterialProperties.AlgorithmRef, bom.Components)
+					if assert.NotNil(t, publicKeyAlgorithm) {
+						assert.Equal(t, test.name, publicKeyAlgorithm.Name)
+						assert.Equal(t, test.oid, publicKeyAlgorithm.CryptoProperties.OID)
+						assert.Equal(t, cryptoFunctions, publicKeyAlgorithm.CryptoProperties.AlgorithmProperties.CryptoFunctions)
+					}
+				}
+			}
+			assert.True(t, foundCertificate)
+		})
+	}
+}
+
+// The fields of an X.509 certificate that the tests for malformed ML-DSA certificates change,
+// see: https://datatracker.ietf.org/doc/html/rfc5280#section-4.1
+type mldsaTestCertificate struct {
+	TBSCertificate     asn1.RawValue
+	SignatureAlgorithm pkix.AlgorithmIdentifier
+	SignatureValue     asn1.BitString
+}
+
+type mldsaTestPublicKeyInfo struct {
+	Algorithm pkix.AlgorithmIdentifier
+	PublicKey asn1.BitString
+}
+
+// Change the signature algorithm and the public key of a DER encoded certificate. The signature is not updated,
+// but that is fine since it is not verified when parsing the certificate.
+func changeMLDSACertificate(t *testing.T, der []byte, change func(signatureAlgorithm *pkix.AlgorithmIdentifier, publicKeyInfo *mldsaTestPublicKeyInfo)) []byte {
+	// Position of the signature algorithm and the public key in the TBSCertificate
+	const signatureAlgorithmField, publicKeyInfoField = 2, 6
+
+	marshal := func(value any) []byte {
+		encoded, err := asn1.Marshal(value)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return encoded
+	}
+
+	var cert mldsaTestCertificate
+	if _, err := asn1.Unmarshal(der, &cert); err != nil {
+		t.Fatal(err)
+	}
+	var tbsCertificate []asn1.RawValue
+	if _, err := asn1.Unmarshal(cert.TBSCertificate.FullBytes, &tbsCertificate); err != nil {
+		t.Fatal(err)
+	}
+	var publicKeyInfo mldsaTestPublicKeyInfo
+	if _, err := asn1.Unmarshal(tbsCertificate[publicKeyInfoField].FullBytes, &publicKeyInfo); err != nil {
+		t.Fatal(err)
+	}
+
+	change(&cert.SignatureAlgorithm, &publicKeyInfo)
+
+	// The signature algorithm is in the TBSCertificate and in the certificate itself, both have to be equal
+	tbsCertificate[signatureAlgorithmField] = asn1.RawValue{FullBytes: marshal(cert.SignatureAlgorithm)}
+	tbsCertificate[publicKeyInfoField] = asn1.RawValue{FullBytes: marshal(publicKeyInfo)}
+	cert.TBSCertificate = asn1.RawValue{FullBytes: marshal(tbsCertificate)}
+	return marshal(cert)
+}
+
+func TestIssue227_MalformedMLDSACertificates(t *testing.T) {
+	path := "../../../testdata/mldsa_certificate/dir/mldsa44.pem"
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	block, _ := pem.Decode(raw)
+	if block == nil {
+		t.Fatal("no PEM block in " + path)
+	}
+
+	t.Run("unchanged certificate is still an ML-DSA certificate", func(t *testing.T) {
+		der := changeMLDSACertificate(t, block.Bytes, func(*pkix.AlgorithmIdentifier, *mldsaTestPublicKeyInfo) {})
+		assert.Equal(t, block.Bytes, der)
+	})
+
+	// RFC 9881 requires absent parameters and a public key of 1312 bytes for ML-DSA-44,
+	// see: https://www.rfc-editor.org/rfc/rfc9881.html
+	tests := []struct {
+		name   string
+		change func(signatureAlgorithm *pkix.AlgorithmIdentifier, publicKeyInfo *mldsaTestPublicKeyInfo)
+	}{
+		{"signature algorithm with NULL parameters", func(signatureAlgorithm *pkix.AlgorithmIdentifier, _ *mldsaTestPublicKeyInfo) {
+			signatureAlgorithm.Parameters = asn1.NullRawValue
+		}},
+		{"public key algorithm with NULL parameters", func(_ *pkix.AlgorithmIdentifier, publicKeyInfo *mldsaTestPublicKeyInfo) {
+			publicKeyInfo.Algorithm.Parameters = asn1.NullRawValue
+		}},
+		{"public key one byte too short", func(_ *pkix.AlgorithmIdentifier, publicKeyInfo *mldsaTestPublicKeyInfo) {
+			publicKeyInfo.PublicKey.Bytes = publicKeyInfo.PublicKey.Bytes[:1311]
+			publicKeyInfo.PublicKey.BitLength = 1311 * 8
+		}},
+		{"public key one byte too long", func(_ *pkix.AlgorithmIdentifier, publicKeyInfo *mldsaTestPublicKeyInfo) {
+			publicKeyInfo.PublicKey.Bytes = append(publicKeyInfo.PublicKey.Bytes, 0)
+			publicKeyInfo.PublicKey.BitLength = 1313 * 8
+		}},
+		{"public key with the OID of another parameter set", func(_ *pkix.AlgorithmIdentifier, publicKeyInfo *mldsaTestPublicKeyInfo) {
+			publicKeyInfo.Algorithm.Algorithm = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 3, 18} // ML-DSA-65
+		}},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			der := changeMLDSACertificate(t, block.Bytes, test.change)
+			certs, err := parseX509CertFromPath(der, "mldsa44.der")
+			if err != nil {
+				// crypto/x509 knows ML-DSA from Go 1.27 on and may reject the certificate itself
+				return
+			}
+			if !assert.Len(t, certs, 1) {
+				return
+			}
+
+			_, _, err = x509lib.GenerateCdxComponents(certs[0])
+			assert.ErrorIs(t, err, scannererrors.ErrX509UnknownAlgorithm)
+		})
+	}
 }
