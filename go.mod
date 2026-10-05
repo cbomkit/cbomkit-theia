@@ -8,7 +8,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/google/go-containerregistry v0.21.7
 	github.com/google/uuid v1.6.0
-	github.com/magiconair/properties v1.18.11
+	github.com/magiconair/properties v1.18.12
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/moby/go-archive v0.3.0
 	github.com/moby/moby/client v0.5.1
