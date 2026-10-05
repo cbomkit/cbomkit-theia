@@ -5,7 +5,7 @@ go 1.26.8
 require (
 	github.com/CycloneDX/cyclonedx-go v0.12.0
 	github.com/anchore/stereoscope v0.2.2
-	github.com/bmatcuk/doublestar/v4 v4.10.0
+	github.com/bmatcuk/doublestar/v4 v4.10.2
 	github.com/google/go-containerregistry v0.21.7
 	github.com/google/uuid v1.6.0
 	github.com/magiconair/properties v1.18.11
