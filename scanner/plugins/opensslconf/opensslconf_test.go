@@ -34,6 +34,7 @@ func Test_parseOpenSSLConf_and_extractRelevantProperties(t *testing.T) {
 MinProtocol = TLSv1.2
 MaxProtocol = TLSv1.3
 CipherString = DEFAULT@SECLEVEL=2
+Groups = X25519MLKEM768:X25519:P-256
 Options = ServerPreference,PrioritizeChaCha
 
 [ca_default]
@@ -54,10 +55,75 @@ CApath=/etc/ssl/certs
 	assert.Equal(t, "TLSv1.2", m["theia:openssl:MinProtocol"])
 	assert.Equal(t, "TLSv1.3", m["theia:openssl:MaxProtocol"])
 	assert.Equal(t, "DEFAULT@SECLEVEL=2", m["theia:openssl:CipherString"])
+	assert.Equal(t, "X25519MLKEM768:X25519:P-256", m["theia:openssl:Groups"])
 	assert.Equal(t, "ServerPreference,PrioritizeChaCha", m["theia:openssl:Options"])
 	assert.Equal(t, "/etc/ssl/certs/ca-bundle.crt", m["theia:openssl:CAfile"])
 	assert.Equal(t, "/etc/ssl/certs", m["theia:openssl:CApath"])
 	assert.Equal(t, "sha256", m["theia:openssl:default_md"])
+}
+
+// Test_parseOpenSSLConf_CurvesAliasCaseInsensitive covers cbomkit-theia#212:
+// "Curves" is the legacy alias for "Groups", and OpenSSL matches directive
+// names case-insensitively, so a config using either spelling/casing must
+// still surface the post-quantum/hybrid group on the CBOM.
+func Test_parseOpenSSLConf_CurvesAliasCaseInsensitive(t *testing.T) {
+	content := `
+[system_default_sect]
+curves = X25519MLKEM768
+`
+	cfg, err := parseOpenSSLConf(strings.NewReader(content))
+	assert.NoError(t, err)
+	props := extractRelevantProperties(cfg)
+
+	m := map[string]string{}
+	for _, p := range props {
+		m[p.Name] = p.Value
+	}
+	assert.Equal(t, "X25519MLKEM768", m["theia:openssl:Groups"])
+}
+
+// Test_parseOpenSSLConf_GroupsPreferredOverCurves: when both directives are
+// present (e.g. a config written for both OpenSSL 1.1 and 3.x readers),
+// "Groups" wins deterministically.
+func Test_parseOpenSSLConf_GroupsPreferredOverCurves(t *testing.T) {
+	content := `
+[system_default_sect]
+Groups = X25519MLKEM768
+Curves = P-256
+`
+	cfg, err := parseOpenSSLConf(strings.NewReader(content))
+	assert.NoError(t, err)
+	props := extractRelevantProperties(cfg)
+
+	m := map[string]string{}
+	for _, p := range props {
+		m[p.Name] = p.Value
+	}
+	assert.Equal(t, "X25519MLKEM768", m["theia:openssl:Groups"])
+}
+
+// Test_parseOpenSSLConf_SectionPriorityOverNamePriority: section order wins
+// over name order across sections -- "Curves" in the earlier preferred
+// section ("system_default_sect") is used even though "Groups" (the
+// otherwise-preferred name) appears only in a later preferred section
+// ("req").
+func Test_parseOpenSSLConf_SectionPriorityOverNamePriority(t *testing.T) {
+	content := `
+[system_default_sect]
+Curves = X25519MLKEM768
+
+[req]
+Groups = P-256
+`
+	cfg, err := parseOpenSSLConf(strings.NewReader(content))
+	assert.NoError(t, err)
+	props := extractRelevantProperties(cfg)
+
+	m := map[string]string{}
+	for _, p := range props {
+		m[p.Name] = p.Value
+	}
+	assert.Equal(t, "X25519MLKEM768", m["theia:openssl:Groups"])
 }
 
 func Test_UpdateBOM_adds_component(t *testing.T) {
@@ -91,6 +157,7 @@ func Test_UpdateBOM_adds_component(t *testing.T) {
 			assert.Equal(t, "TLSv1.2", props["theia:openssl:MinProtocol"])
 			assert.Equal(t, "TLSv1.3", props["theia:openssl:MaxProtocol"])
 			assert.Equal(t, "ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384", props["theia:openssl:CipherString"])
+			assert.Equal(t, "X25519MLKEM768:X25519:P-256", props["theia:openssl:Groups"])
 			assert.Equal(t, "ServerPreference,PrioritizeChaCha", props["theia:openssl:Options"])
 			assert.Equal(t, "/etc/ssl/certs/ca-bundle.crt", props["theia:openssl:CAfile"])
 			assert.Equal(t, "/etc/ssl/certs", props["theia:openssl:CApath"])
