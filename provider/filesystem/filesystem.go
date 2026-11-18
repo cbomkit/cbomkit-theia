@@ -19,11 +19,12 @@ package filesystem
 import (
 	goerrors "errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 
 	scannererrors "github.com/cbomkit/cbomkit-theia/scanner/errors"
 
@@ -66,12 +67,10 @@ func (plainFilesystem PlainFilesystem) WalkDir(fn FilePathAnalysisFunc) error {
 			return nil
 		}
 
-		if d.Type()&fs.ModeSymlink != 0 {
-			// Resolve symlink to check if target is a directory
-			target, err := os.Stat(path)
-			if err != nil || target.IsDir() {
-				return nil // skip symlinks to directories (or broken symlinks)
-			}
+		// Only regular files can be scanned; for example opening a FIFO would make open() never return
+		info, err := os.Stat(path)
+		if err != nil || !info.Mode().IsRegular() {
+			return nil
 		}
 
 		relativePath, err := filepath.Rel(plainFilesystem.rootPath, path)
