@@ -23,8 +23,10 @@ import (
 	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/asn1"
 	"encoding/base64"
 	"fmt"
+	"math/big"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/cbomkit/cbomkit-theia/scanner/errors"
@@ -49,6 +51,8 @@ func GenerateCdxComponent(key any) (*cdx.Component, error) {
 		return getRSAPublicKeyComponent(key), nil
 	case *dsa.PublicKey:
 		return getDSAPublicKeyComponent(key), nil
+	case *dsa.PrivateKey:
+		return getDSAPrivateKeyComponent(key), nil
 	case *ecdsa.PublicKey:
 		return getECDSAPublicKeyComponent(key), nil
 	case *ed25519.PublicKey:
@@ -177,6 +181,52 @@ func getDSAPublicKeyComponent(key *dsa.PublicKey) *cdx.Component {
 	c.Name = "DSA"
 	size := key.Y.BitLen()
 	c.CryptoProperties.RelatedCryptoMaterialProperties.Size = &size
-	c.CryptoProperties.OID = "1.3.14.3.2.12"
+	c.CryptoProperties.OID = "1.2.840.10040.4.1"
+	if keyValue, err := marshalDSAPublicKey(key); err == nil {
+		c.CryptoProperties.RelatedCryptoMaterialProperties.Value = base64.StdEncoding.EncodeToString(keyValue)
+	}
 	return c
+}
+
+func getDSAPrivateKeyComponent(key *dsa.PrivateKey) *cdx.Component {
+	c := getGenericPrivateKeyComponent()
+	c.Name = "DSA"
+	size := key.Y.BitLen()
+	c.CryptoProperties.RelatedCryptoMaterialProperties.Size = &size
+	c.CryptoProperties.OID = "1.2.840.10040.4.1"
+	return c
+}
+
+// dsaAlgorithmParameters mirrors RFC 3279's Dss-Parms.
+type dsaAlgorithmParameters struct {
+	P, Q, G *big.Int
+}
+
+type dsaAlgorithmIdentifier struct {
+	Algorithm  asn1.ObjectIdentifier
+	Parameters dsaAlgorithmParameters
+}
+
+// dsaPublicKeyInfo mirrors RFC 5280's SubjectPublicKeyInfo, specialized to a DSA
+// AlgorithmIdentifier.
+type dsaPublicKeyInfo struct {
+	Algorithm dsaAlgorithmIdentifier
+	PublicKey asn1.BitString
+}
+
+// marshalDSAPublicKey builds the PKIX, ASN.1 DER SubjectPublicKeyInfo encoding of a DSA public
+// key by hand. crypto/x509.MarshalPKIXPublicKey (unlike ParsePKIXPublicKey) does not support DSA,
+// so there is no standard-library function to reuse here.
+func marshalDSAPublicKey(key *dsa.PublicKey) ([]byte, error) {
+	y, err := asn1.Marshal(key.Y)
+	if err != nil {
+		return nil, err
+	}
+	return asn1.Marshal(dsaPublicKeyInfo{
+		Algorithm: dsaAlgorithmIdentifier{
+			Algorithm:  asn1.ObjectIdentifier{1, 2, 840, 10040, 4, 1},
+			Parameters: dsaAlgorithmParameters{P: key.P, Q: key.Q, G: key.G},
+		},
+		PublicKey: asn1.BitString{Bytes: y, BitLength: len(y) * 8},
+	})
 }
