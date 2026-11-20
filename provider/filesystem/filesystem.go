@@ -47,6 +47,7 @@ type Filesystem interface {
 // PlainFilesystem Simple plain filesystem that is constructed from the directory
 type PlainFilesystem struct { // implements Filesystem
 	rootPath string
+	skipDir  func(relativePath string) bool // Directory wont be read in case its True
 }
 
 // NewPlainFilesystem Get a new PlainFilesystem from rootPath
@@ -59,6 +60,12 @@ func NewPlainFilesystem(rootPath string) PlainFilesystem {
 // WalkDir Walk the whole PlainFilesystem using fn
 func (plainFilesystem PlainFilesystem) WalkDir(fn FilePathAnalysisFunc) error {
 	return filepath.WalkDir(plainFilesystem.rootPath, func(path string, d fs.DirEntry, err error) error {
+		if plainFilesystem.skipDir != nil && d != nil && d.IsDir() {
+			if rel, relErr := filepath.Rel(plainFilesystem.rootPath, path); relErr == nil && rel != "." && plainFilesystem.skipDir(filepath.ToSlash(rel)) {
+				return filepath.SkipDir
+			}
+		}
+
 		if err != nil {
 			return err
 		}

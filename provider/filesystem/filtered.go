@@ -47,7 +47,13 @@ func NewFilteredFilesystem(inner Filesystem, patterns []string) Filesystem {
 
 // WalkDir walks the wrapped filesystem, skipping files that match any ignore pattern.
 func (f *FilteredFilesystem) WalkDir(fn FilePathAnalysisFunc) error {
-	return f.inner.WalkDir(func(path string) error {
+	inner := f.inner
+	// Skip ignored directories so unreadable ones won't abort the walk
+	if plain, ok := inner.(PlainFilesystem); ok {
+		plain.skipDir = f.shouldIgnore
+		inner = plain
+	}
+	return inner.WalkDir(func(path string) error {
 		if f.shouldIgnore(path) {
 			log.Debugf("Ignoring file: %s", path)
 			return nil
