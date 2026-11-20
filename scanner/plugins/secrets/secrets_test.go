@@ -19,11 +19,60 @@ package secrets
 import (
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/cbomkit/cbomkit-theia/provider/cyclonedx"
+	"github.com/cbomkit/cbomkit-theia/provider/filesystem"
 	"github.com/stretchr/testify/assert"
 	"github.com/zricethezav/gitleaks/v8/detect"
 	"os"
+	"path/filepath"
 	"testing"
 )
+
+func TestUpdateBOMScansNodeModulesUnlessIgnored(t *testing.T) {
+	root := t.TempDir()
+	key, err := os.ReadFile("../../../testdata/secrets/dir/rsa/ssh_rsa")
+	if err != nil {
+		t.Fatal(err)
+	}
+	paths := []string{
+		"node_modules/example/secret.js",
+		"node_modules_1/example/secret.js",
+	}
+	for _, path := range paths {
+		fullPath := filepath.Join(root, filepath.FromSlash(path))
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(fullPath, key, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	scan := func(fs filesystem.Filesystem) map[string]bool {
+		bom := cdx.NewBOM()
+		components := []cdx.Component{}
+		bom.Components = &components
+		if err := (&Plugin{}).UpdateBOM(fs, bom); err != nil {
+			t.Fatal(err)
+		}
+		found := make(map[string]bool)
+		for _, component := range *bom.Components {
+			for _, occurrence := range *component.Evidence.Occurrences {
+				found[occurrence.Location] = true
+			}
+		}
+		return found
+	}
+
+	plain := filesystem.NewPlainFilesystem(root)
+	found := scan(plain)
+	assert.True(t, found[paths[0]], "secret under node_modules must be detected")
+	assert.True(t, found[paths[1]], "control secret must be detected")
+
+	filtered := filesystem.NewFilteredFilesystem(plain, []string{"node_modules/"})
+	found = scan(filtered)
+	assert.False(t, found[paths[0]], "explicitly ignored path must remain excluded")
+	assert.True(t, found[paths[1]], "control secret must still be detected")
+}
 
 func TestPrivateKey(t *testing.T) {
 	detector, err := detect.NewDetectorDefaultConfig()
