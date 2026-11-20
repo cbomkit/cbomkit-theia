@@ -28,6 +28,10 @@ import (
 
 // An ignored directory must be skipped without being read
 func TestFilteredFilesystem_WalkDirSkipsIgnoredDir(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Fatal("Root can read directories regardless of permissions leading to a false PASS.")
+	}
+
 	dir := t.TempDir()
 	for _, name := range []string{"dir_ignored", "dir_not_ignored"} {
 		if err := os.Mkdir(filepath.Join(dir, name), 0o755); err != nil {
