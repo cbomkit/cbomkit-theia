@@ -127,12 +127,22 @@ func (*Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 // default global allowlist otherwise suppresses all findings under paths such as
 // node_modules, even when the user has not ignored them in Theia.
 func newSecretsDetector() (*detect.Detector, error) {
-	defaultDetector, err := detect.NewDetectorDefaultConfig()
+	// Gitleaks' default constructor replaces the application's global Viper
+	// configuration. Parse the same defaults with a private instance instead.
+	settings := viper.New()
+	settings.SetConfigType("toml")
+	if err := settings.ReadConfig(strings.NewReader(gitleaksConfig.DefaultConfig)); err != nil {
+		return nil, err
+	}
+	var parsed gitleaksConfig.ViperConfig
+	if err := settings.Unmarshal(&parsed); err != nil {
+		return nil, err
+	}
+	cfg, err := parsed.Translate()
 	if err != nil {
 		return nil, err
 	}
 
-	cfg := defaultDetector.Config
 	globalAllowlists := make([]*gitleaksConfig.Allowlist, 0, len(cfg.Allowlists))
 	for _, allowlist := range cfg.Allowlists {
 		if len(allowlist.Paths) == 0 {
