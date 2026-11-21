@@ -47,19 +47,18 @@ func NewFilteredFilesystem(inner Filesystem, patterns []string) Filesystem {
 
 // WalkDir walks the wrapped filesystem, skipping files that match any ignore pattern.
 func (f *FilteredFilesystem) WalkDir(fn FilePathAnalysisFunc) error {
-	inner := f.inner
-	// Skip ignored directories so unreadable ones won't abort the walk
-	if plain, ok := inner.(PlainFilesystem); ok {
-		plain.skipDir = f.shouldIgnore
-		inner = plain
-	}
-	return inner.WalkDir(func(path string) error {
+	filteredFn := func(path string) error {
 		if f.shouldIgnore(path) {
 			log.Debugf("Ignoring file: %s", path)
 			return nil
 		}
 		return fn(path)
-	})
+	}
+	// Use WalkDirSkipping if supported, otherwise use WalkDir
+	if walker, ok := f.inner.(DirSkippingWalker); ok {
+		return walker.WalkDirSkipping(filteredFn, f.shouldSkipDir)
+	}
+	return f.inner.WalkDir(filteredFn)
 }
 
 // Open delegates to the inner filesystem.
@@ -82,6 +81,31 @@ func (f *FilteredFilesystem) GetIdentifier() string {
 	return f.inner.GetIdentifier()
 }
 
+// shouldSkipDir checks if a directory should be skipped during a walk.
+func (f *FilteredFilesystem) shouldSkipDir(path string) bool {
+	normalizedPath := filepath.ToSlash(path)
+	for _, pattern := range f.patterns {
+		pattern = strings.TrimSpace(pattern)
+		if pattern == "" || strings.HasPrefix(pattern, "#") {
+			continue
+		}
+		if matchesDirPattern(pattern, normalizedPath) {
+			return true
+		}
+	}
+	return false
+}
+
+// matchesDirPattern reports whether filter pattern matches the normalized path.
+func matchesDirPattern(pattern, normalizedPath string) bool {
+	// Used only for directory patterns with a trailing slash.
+	if !strings.HasSuffix(pattern, "/") {
+		return false
+	}
+	prefix := strings.TrimSuffix(pattern, "/")
+	return normalizedPath == prefix || strings.HasPrefix(normalizedPath, prefix+"/")
+}
+
 // shouldIgnore checks if a path matches any of the ignore patterns.
 func (f *FilteredFilesystem) shouldIgnore(path string) bool {
 	// Normalize path separators to forward slashes for consistent matching
@@ -94,11 +118,8 @@ func (f *FilteredFilesystem) shouldIgnore(path string) bool {
 		}
 
 		// If pattern ends with /, it matches directories (i.e., any path with that prefix)
-		if strings.HasSuffix(pattern, "/") {
-			prefix := strings.TrimSuffix(pattern, "/")
-			if strings.HasPrefix(normalizedPath, prefix+"/") || normalizedPath == prefix {
-				return true
-			}
+		if matchesDirPattern(pattern, normalizedPath) {
+			return true
 		}
 
 		// Try matching the pattern against the full path

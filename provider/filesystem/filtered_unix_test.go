@@ -27,9 +27,9 @@ import (
 )
 
 // An ignored directory must be skipped without being read
-func TestFilteredFilesystem_WalkDirSkipsIgnoredDir(t *testing.T) {
+func TestFilteredFilesystem_WalkDirDoesntReadIgnoredDir(t *testing.T) {
 	if os.Geteuid() == 0 {
-		t.Fatal("Root can read directories regardless of permissions leading to a false PASS.")
+		t.Skip("root can read directories regardless of permissions")
 	}
 
 	dir := t.TempDir()
@@ -48,13 +48,18 @@ func TestFilteredFilesystem_WalkDirSkipsIgnoredDir(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chmod(ignored, 0o755) })
 
-	var visited []string
-	filtered := NewFilteredFilesystem(NewPlainFilesystem(dir), []string{"dir_ignored/"})
-	err := filtered.WalkDir(func(p string) error {
-		visited = append(visited, p)
-		return nil
-	})
+	plain := NewPlainFilesystem(dir)
+	for name, inner := range map[string]Filesystem{"value": plain, "pointer": &plain} {
+		t.Run(name, func(t *testing.T) {
+			var visited []string
+			filtered := NewFilteredFilesystem(inner, []string{"dir_ignored/"})
+			err := filtered.WalkDir(func(p string) error {
+				visited = append(visited, p)
+				return nil
+			})
 
-	assert.NoError(t, err)
-	assert.Equal(t, []string{"dir_not_ignored/file.txt"}, visited)
+			assert.NoError(t, err)
+			assert.Equal(t, []string{"dir_not_ignored/file.txt"}, visited)
+		})
+	}
 }
