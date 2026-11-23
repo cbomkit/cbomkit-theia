@@ -121,6 +121,37 @@ func TestFilteredFilesystem_WalkDir(t *testing.T) {
 	assert.NotContains(t, walked, "temp.tmp")
 }
 
+func TestFilteredFilesystem_WalkDirOnlyPrunesDirPatterns(t *testing.T) {
+	tmpDir := t.TempDir()
+	for _, f := range []string{"cache.tmp/cert.pem", "docs/sub/cert.pem", "src/build/cert.pem", "certs.pem/cert.crt"} {
+		path := filepath.Join(tmpDir, f)
+		assert.NoError(t, os.MkdirAll(filepath.Dir(path), 0o755))
+		assert.NoError(t, os.WriteFile(path, []byte("test"), 0o644))
+	}
+
+	walk := func(pattern string) []string {
+		var walked []string
+		err := NewFilteredFilesystem(NewPlainFilesystem(tmpDir), []string{pattern}).WalkDir(func(path string) error {
+			walked = append(walked, path)
+			return nil
+		})
+		assert.NoError(t, err)
+		return walked
+	}
+
+	assert.Contains(t, walk("*.tmp"), "cache.tmp/cert.pem")
+	assert.NotContains(t, walk("cache.tmp/"), "cache.tmp/cert.pem")
+
+	assert.Contains(t, walk("docs/*"), "docs/sub/cert.pem")
+	assert.NotContains(t, walk("docs/"), "docs/sub/cert.pem")
+
+	assert.Contains(t, walk("build"), "src/build/cert.pem")
+	assert.NotContains(t, walk("src/build/"), "src/build/cert.pem")
+
+	assert.Contains(t, walk("*.pem"), "certs.pem/cert.crt")
+	assert.NotContains(t, walk("certs.pem/"), "certs.pem/cert.crt")
+}
+
 func TestFilteredFilesystem_DelegatesMethods(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")

@@ -44,6 +44,12 @@ type Filesystem interface {
 	GetIdentifier() string                                  // Identifier for this specific filesystem; can be used for logging
 }
 
+// DirSkippingWalker is an optional interface for filesystems to prune
+// directories during a walk without reading them.
+type DirSkippingWalker interface {
+	WalkDirSkipping(fn FilePathAnalysisFunc, skipDir func(relativePath string) bool) error
+}
+
 // PlainFilesystem Simple plain filesystem that is constructed from the directory
 type PlainFilesystem struct { // implements Filesystem
 	rootPath string
@@ -58,7 +64,20 @@ func NewPlainFilesystem(rootPath string) PlainFilesystem {
 
 // WalkDir Walk the whole PlainFilesystem using fn
 func (plainFilesystem PlainFilesystem) WalkDir(fn FilePathAnalysisFunc) error {
+	return plainFilesystem.WalkDirSkipping(fn, nil)
+}
+
+// WalkDirSkipping Walk the PlainFilesystem using fn, without reading directories for which skipDir returns true.
+// A nil skipDir will walk everything.
+func (plainFilesystem PlainFilesystem) WalkDirSkipping(fn FilePathAnalysisFunc, skipDir func(relativePath string) bool) error {
 	return filepath.WalkDir(plainFilesystem.rootPath, func(path string, d fs.DirEntry, err error) error {
+		// WalkDir calls us for a directory before reading it, so returning SkipDir here means it won't be read at all
+		if skipDir != nil && d != nil && d.IsDir() {
+			if rel, relErr := filepath.Rel(plainFilesystem.rootPath, path); relErr == nil && rel != "." && skipDir(filepath.ToSlash(rel)) {
+				return filepath.SkipDir
+			}
+		}
+
 		if err != nil {
 			return err
 		}
