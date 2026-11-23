@@ -127,9 +127,13 @@ func (*Plugin) UpdateBOM(fs filesystem.Filesystem, bom *cdx.BOM) error {
 				Finding: finding,
 				raw:     []byte(finding.Match),
 			}
-			log.WithFields(log.Fields{
-				"type": finding.RuleID, "file": finding.File,
-			}).Info("Secret detected")
+			isPublicKeyRule := isPublicKeyRuleID(finding.RuleID)
+			entry := log.WithFields(log.Fields{"type": finding.RuleID, "file": finding.File})
+			if isPublicKeyRule {
+				entry.Debug("Public key detected")
+			} else {
+				entry.Info("Secret detected")
+			}
 
 			// Create CDX Components
 			currentComponents, err := findingMeta.getComponents()
@@ -221,6 +225,14 @@ func parseGitleaksConfig(toml string) (gitleaksConfig.ViperConfig, error) {
 // ID is added, and a rule reusing an existing ID is merged into it. Description, path, regex,
 // entropy and secret group replace the base's when set; tags, keywords and allowlists are
 // appended. Merging happens before Translate so validation sees the finished rule.
+//
+// Limits (shared with Gitleaks' own extend mechanism):
+//   - A field cannot be reset to its zero value: setting Entropy to 0 or Regex to "" in the extra
+//     rule is a no-op; the base value is kept.
+//   - The deprecated top-level AllowList field in the extra config is not carried over; use
+//     [[allowlists]] instead.
+//   - Gitleaks' [extend] disabledRules list is not supported; a rule can be replaced but not
+//     removed.
 func mergeExtraRules(base *gitleaksConfig.ViperConfig, extra gitleaksConfig.ViperConfig) {
 	index := make(map[string]int, len(base.Rules))
 	for i, rule := range base.Rules {
@@ -418,10 +430,16 @@ func (finding findingWithMetadata) getGenericSecretComponent() cdx.Component {
 	}
 }
 
+func isPublicKeyRuleID(id string) bool {
+	return strings.Contains(id, "public-key")
+}
+
 func getRelatedCryptoAssetTypeFromRuleID(id string) cdx.RelatedCryptoMaterialType {
 	switch {
 	case strings.Contains(id, "private-key"):
 		return cdx.RelatedCryptoMaterialTypePrivateKey
+	case isPublicKeyRuleID(id):
+		return cdx.RelatedCryptoMaterialTypePublicKey
 	case strings.Contains(id, "token") ||
 		strings.Contains(id, "jwt"):
 		return cdx.RelatedCryptoMaterialTypeToken

@@ -29,7 +29,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
@@ -196,37 +195,38 @@ type testKeyPEMs struct {
 	rsaPrivate, rsaPublic, ecPrivate, ecPublic string
 }
 
-var (
-	testKeysOnce sync.Once
-	testKeys     testKeyPEMs
-)
+// testKeys is initialised once at package level. Any error panics immediately so the failure
+// is visible to every test, not just the first one that runs (t.Fatal inside sync.Once would
+// silently succeed for all subsequent tests after the first failure).
+var testKeys = func() testKeyPEMs {
+	encode := func(blockType string, der []byte, err error) string {
+		if err != nil {
+			panic(err)
+		}
+		return string(pem.EncodeToMemory(&pem.Block{Type: blockType, Bytes: der}))
+	}
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		panic(err)
+	}
+	ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		panic(err)
+	}
+	var keys testKeyPEMs
+	der, err := x509.MarshalPKCS8PrivateKey(rsaKey)
+	keys.rsaPrivate = encode("PRIVATE KEY", der, err)
+	der, err = x509.MarshalPKIXPublicKey(&rsaKey.PublicKey)
+	keys.rsaPublic = encode("PUBLIC KEY", der, err)
+	der, err = x509.MarshalPKCS8PrivateKey(ecKey)
+	keys.ecPrivate = encode("PRIVATE KEY", der, err)
+	der, err = x509.MarshalPKIXPublicKey(&ecKey.PublicKey)
+	keys.ecPublic = encode("PUBLIC KEY", der, err)
+	return keys
+}()
 
 func syntheticKeys(t *testing.T) testKeyPEMs {
 	t.Helper()
-	testKeysOnce.Do(func() {
-		encode := func(blockType string, der []byte, err error) string {
-			if err != nil {
-				t.Fatal(err)
-			}
-			return string(pem.EncodeToMemory(&pem.Block{Type: blockType, Bytes: der}))
-		}
-		rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
-		if err != nil {
-			t.Fatal(err)
-		}
-		ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		if err != nil {
-			t.Fatal(err)
-		}
-		der, err := x509.MarshalPKCS8PrivateKey(rsaKey)
-		testKeys.rsaPrivate = encode("PRIVATE KEY", der, err)
-		der, err = x509.MarshalPKIXPublicKey(&rsaKey.PublicKey)
-		testKeys.rsaPublic = encode("PUBLIC KEY", der, err)
-		der, err = x509.MarshalPKCS8PrivateKey(ecKey)
-		testKeys.ecPrivate = encode("PRIVATE KEY", der, err)
-		der, err = x509.MarshalPKIXPublicKey(&ecKey.PublicKey)
-		testKeys.ecPublic = encode("PUBLIC KEY", der, err)
-	})
 	return testKeys
 }
 
@@ -358,7 +358,7 @@ func TestMultipleKeysInOneFileYieldOneComponentEach(t *testing.T) {
 		assert.Equal(t, []string{
 			fmt.Sprintf("ECDSA/public-key@mixed.pem:%d", linesBefore(keys.rsaPublic+corrupt)),
 			"RSA-2048/public-key@mixed.pem:0",
-			fmt.Sprintf("pem-public-key/key@mixed.pem:%d", linesBefore(keys.rsaPublic)),
+			fmt.Sprintf("pem-public-key/public-key@mixed.pem:%d", linesBefore(keys.rsaPublic)),
 		}, got)
 	})
 }
