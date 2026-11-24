@@ -431,7 +431,7 @@ func (finding findingWithMetadata) getGenericSecretComponent() cdx.Component {
 }
 
 func isPublicKeyRuleID(id string) bool {
-	return strings.Contains(id, "public-key")
+	return id == "pem-public-key" || id == "public-key-file"
 }
 
 func getRelatedCryptoAssetTypeFromRuleID(id string) cdx.RelatedCryptoMaterialType {
