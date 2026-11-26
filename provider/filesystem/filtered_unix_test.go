@@ -50,16 +50,29 @@ func TestFilteredFilesystem_WalkDirDoesntReadIgnoredDir(t *testing.T) {
 
 	plain := NewPlainFilesystem(dir)
 	for name, inner := range map[string]Filesystem{"value": plain, "pointer": &plain} {
-		t.Run(name, func(t *testing.T) {
-			var visited []string
-			filtered := NewFilteredFilesystem(inner, []string{"dir_ignored/"})
-			err := filtered.WalkDir(func(p string) error {
-				visited = append(visited, p)
-				return nil
-			})
+		// pattern -> files that are still walked
+		tests := map[string][]string{
+			"dir_ignored/":     {"dir_not_ignored/file.txt"},
+			"dir_ignored/**":   {"dir_not_ignored/file.txt"},
+			"/dir_ignored/":    {"dir_not_ignored/file.txt"}, // leading "/" is stripped
+			"./dir_ignored/**": {"dir_not_ignored/file.txt"}, // leading "./" is stripped
+			"**/dir_ignored/":  {"dir_not_ignored/file.txt"}, // "**" wildcard, any depth
+			"dir_ignore[d]/":   {"dir_not_ignored/file.txt"}, // character class
+			"**":               nil,                          // skips every dir
+			"/**":              nil,                          // normalized to "**", skips every dir
+		}
+		for pattern, want := range tests {
+			t.Run(name+"/"+pattern, func(t *testing.T) {
+				var visited []string
+				filtered := NewFilteredFilesystem(inner, []string{pattern})
+				err := filtered.WalkDir(func(p string) error {
+					visited = append(visited, p)
+					return nil
+				})
 
-			assert.NoError(t, err)
-			assert.Equal(t, []string{"dir_not_ignored/file.txt"}, visited)
-		})
+				assert.NoError(t, err)
+				assert.Equal(t, want, visited)
+			})
+		}
 	}
 }

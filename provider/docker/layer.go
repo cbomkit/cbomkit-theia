@@ -25,20 +25,42 @@ import (
 	"strings"
 
 	"github.com/anchore/stereoscope/pkg/file"
+	"github.com/anchore/stereoscope/pkg/filetree"
 	"github.com/anchore/stereoscope/pkg/filetree/filenode"
 	"github.com/anchore/stereoscope/pkg/image"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 )
 
 // Layer Struct to represent a single layer in an ActiveImage
-type Layer struct { // implements Filesystem
+type Layer struct { // implements Filesystem and DirSkippingWalker
 	*image.Layer
 	index int
 	image *ActiveImage
 }
 
+// This is to keep implementations consistent. In case the signature changes it won't compile.
+var _ filesystem.DirSkippingWalker = Layer{}
+
 // WalkDir Walk all files in the squashed layer using fn
 func (layer Layer) WalkDir(fn filesystem.FilePathAnalysisFunc) error {
+	return layer.WalkDirSkipping(fn, nil)
+}
+
+// WalkDirSkipping Walk all files in the layer using fn without reading directories for which skipDir returns true.
+// A nil skipDir will walk everything.
+func (layer Layer) WalkDirSkipping(fn filesystem.FilePathAnalysisFunc, skipDir func(path string) bool) error {
+	var conditions *filetree.WalkConditions
+	if skipDir != nil {
+		conditions = &filetree.WalkConditions{
+			ShouldContinueBranch: func(path file.Path, f filenode.FileNode) bool {
+				if f.FileType != file.TypeDirectory {
+					return true
+				}
+				return !skipDir(string(path))
+			},
+		}
+	}
+
 	return layer.SquashedTree.Walk(
 		func(path file.Path, f filenode.FileNode) error {
 			if f.FileType == file.TypeDirectory {
@@ -52,7 +74,7 @@ func (layer Layer) WalkDir(fn filesystem.FilePathAnalysisFunc) error {
 			} else {
 				return err
 			}
-		}, nil)
+		}, conditions)
 }
 
 // Open Read a file from this layer

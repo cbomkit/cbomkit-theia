@@ -47,13 +47,17 @@ type Filesystem interface {
 // DirSkippingWalker is an optional interface for filesystems to prune
 // directories during a walk without reading them.
 type DirSkippingWalker interface {
-	WalkDirSkipping(fn FilePathAnalysisFunc, skipDir func(relativePath string) bool) error
+	WalkDirSkipping(fn FilePathAnalysisFunc, skipDir func(path string) bool) error
 }
 
 // PlainFilesystem Simple plain filesystem that is constructed from the directory
-type PlainFilesystem struct { // implements Filesystem
+type PlainFilesystem struct { // implements Filesystem and DirSkippingWalker
 	rootPath string
 }
+
+// FilteredFilesystem detects DirSkippingWalker at runtime. If the signature changes,
+// dir scans would silently fall back to WalkDir.
+var _ DirSkippingWalker = PlainFilesystem{}
 
 // NewPlainFilesystem Get a new PlainFilesystem from rootPath
 func NewPlainFilesystem(rootPath string) PlainFilesystem {

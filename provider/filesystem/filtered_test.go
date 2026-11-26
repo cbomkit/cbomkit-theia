@@ -19,6 +19,7 @@ package filesystem
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,46 +36,41 @@ func TestNewFilteredFilesystem_NoPatterns(t *testing.T) {
 }
 
 func TestFilteredFilesystem_ShouldIgnore(t *testing.T) {
-	inner := NewPlainFilesystem(".")
-	patterns := []string{
-		"testdata/",
-		"*.tmp",
-		"vendor/",
+	paths := []string{
+		"testdata/cert.pem",
+		"testdata/sub/file.txt",
+		"testdata_backup/file.txt",
+		"vendor/lib/file.go",
+		"file.tmp",
+		"some/path/file.tmp",
 		"secret.key",
-		"docs/**/*.pdf",
-		"# this is a comment",
-		"",
-	}
-	fs := &FilteredFilesystem{inner: inner, patterns: patterns}
-
-	tests := []struct {
-		path     string
-		expected bool
-	}{
-		// Directory-style patterns
-		{"testdata/cert.pem", true},
-		{"testdata/sub/file.txt", true},
-		{"vendor/lib/file.go", true},
-		// Extension patterns
-		{"some/path/file.tmp", true},
-		{"file.tmp", true},
-		// Exact file match
-		{"secret.key", true},
-		{"sub/secret.key", true},
-		// Doublestar patterns
-		{"docs/intro/manual.pdf", true},
-		{"docs/manual.pdf", true},
-		// Should NOT be ignored
-		{"src/main.go", false},
-		{"certificates/cert.pem", false},
-		{"file.txt", false},
-		{"testdata_backup/file.txt", false},
+		"sub/secret.key",
+		"docs/manual.pdf",
+		"docs/intro/manual.pdf",
+		"pages/i/page.ts",
+		"pages/[id]/page.ts",
+		"certificates/cert.pem",
+		"src/main.go",
+		"file.txt",
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.path, func(t *testing.T) {
-			assert.Equal(t, tt.expected, fs.shouldIgnore(tt.path), "path: %s", tt.path)
-		})
+	// pattern -> ignored paths, every other path must not be ignored
+	tests := map[string][]string{
+		"testdata/":     {"testdata/cert.pem", "testdata/sub/file.txt"},
+		"vendor/":       {"vendor/lib/file.go"},
+		"*.tmp":         {"file.tmp", "some/path/file.tmp"},
+		"secret.key":    {"secret.key", "sub/secret.key"},
+		"docs/**/*.pdf": {"docs/manual.pdf", "docs/intro/manual.pdf"},
+		"pages/[id]/":   {"pages/i/page.ts"},    // "[id]" is a character class, will only match i/ and d/
+		`pages/\[id\]/`: {"pages/[id]/page.ts"}, // escaped, matches literally
+	}
+	for pattern, ignored := range tests {
+		fs := &FilteredFilesystem{inner: NewPlainFilesystem("."), patterns: []string{pattern}}
+		for _, path := range paths {
+			t.Run(pattern+"/"+path, func(t *testing.T) {
+				assert.Equal(t, slices.Contains(ignored, path), fs.shouldIgnore(path))
+			})
+		}
 	}
 }
 

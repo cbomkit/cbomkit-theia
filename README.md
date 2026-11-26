@@ -160,7 +160,16 @@ ignore:
 cbomkit-theia dir ./myproject --ignore "testdata/,*.tmp,vendor/"
 ```
 
-Patterns support [doublestar](https://github.com/bmatcuk/doublestar) glob syntax (e.g., `**/*.pdf`, `*.tmp`, `dir/`). Lines starting with `#` are treated as comments. A trailing `/` matches any path with that directory prefix.
+Patterns support [doublestar](https://github.com/bmatcuk/doublestar) glob syntax (e.g., `**/*.pdf`, `*.tmp`, `dir/`). Lines starting with `#` are treated as comments.
+
+- A pattern without a `/` (e.g., `*.tmp`, `secret.key`) matches the file name at any depth.
+- A pattern that contains a `/` anywhere (including a trailing one) is anchored to the scan root. For example, `vendor/` matches only `<root>/vendor/` and not `a/vendor/`. You can use `**/vendor/` to match the folder at any depth.
+- A leading `/` or `./` is optional for patterns that already contain a `/`. It is useful for single files. `/secret.key` matches only the file at the root, while `secret.key` matches it anywhere.
+- A pattern that ends with `/` or `/**` (e.g., `vendor/`, `vendor/**`) matches the whole directory. Such directories are skipped without being opened. `**` or `/**` skips everything.
+- A directory pattern can contain wildcards (e.g., `**/node_modules/`, `src/*/gen/`). All matching directories are skipped without being opened.
+- A pattern that ends with `/*` (e.g., `docs/*`) matches direct children only, nested directories like `docs/sub/` are still scanned.
+- `[ ] { } * ? \` are interpreted as glob syntax. If your ignore pattern contains any of them, and your goal is to match literally, you have to escape with `\`. For example, `pages/[id]/` matches `pages/i/` and `pages/d/` but not `pages/[id]/`, however `pages/\[id\]/` will only match `pages/[id]/`. An invalid pattern (like `pages/[id/`) is logged as a warning and matches nothing.
+- Patterns match the path as walked, not the symlink target, so ignoring `real.txt` does not exclude `link.txt -> real.txt`. In directory scans, symlinked directories are not followed. In images, they are, and their files are reported under the link path, so `usr/lib/` does not exclude `lib/...` when `/lib -> /usr/lib`. To ignore them, add a pattern for the link path as well (e.g., `link.txt`, `lib/`).
 
 > [!NOTE]
 > For image scanning, `.cbomkitignore` is not applicable (there is no local directory root). Config and CLI patterns still apply.

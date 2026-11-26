@@ -39,6 +39,7 @@ func NewFilteredFilesystem(inner Filesystem, patterns []string) Filesystem {
 	if len(patterns) == 0 {
 		return inner
 	}
+	warnInvalidPatterns(patterns)
 	return &FilteredFilesystem{
 		inner:    inner,
 		patterns: patterns,
@@ -83,41 +84,77 @@ func (f *FilteredFilesystem) GetIdentifier() string {
 
 // shouldSkipDir checks if a directory should be skipped during a walk.
 func (f *FilteredFilesystem) shouldSkipDir(path string) bool {
-	normalizedPath := filepath.ToSlash(path)
-	for _, pattern := range f.patterns {
-		pattern = strings.TrimSpace(pattern)
+	normalizedPath := normalizePath(path)
+	// Never skip root.
+	if normalizedPath == "" {
+		return false
+	}
+	for _, rawPattern := range f.patterns {
+		pattern := strings.TrimSpace(rawPattern)
 		if pattern == "" || strings.HasPrefix(pattern, "#") {
 			continue
 		}
-		if matchesDirPattern(pattern, normalizedPath) {
+		normalizedPattern := normalizePath(pattern)
+		if matchesDirPattern(normalizedPattern, normalizedPath) {
+			log.Debugf("Skipping directory: %s (matches ignore pattern %q)", path, pattern)
 			return true
 		}
 	}
 	return false
 }
 
-// matchesDirPattern reports whether filter pattern matches the normalized path.
-func matchesDirPattern(pattern, normalizedPath string) bool {
-	// Used only for directory patterns with a trailing slash.
-	if !strings.HasSuffix(pattern, "/") {
+// normalizePath strips any leading "/" and "./" so that relative (dir) and
+// absolute (image) paths and ignore patterns are treated consistently.
+func normalizePath(path string) string {
+	// Loop, since a path may have multiple leading "/" or "./".
+	for {
+		switch {
+		case strings.HasPrefix(path, "/"):
+			path = path[1:]
+		case strings.HasPrefix(path, "./"):
+			path = path[2:]
+		default:
+			return path
+		}
+	}
+}
+
+// matchesDirPattern reports whether a normalized dir pattern ("**", "dir/" or "dir/**")
+// matches the normalized path, i.e. the path is that directory or lies below it.
+func matchesDirPattern(normalizedPattern, normalizedPath string) bool {
+	switch {
+	case normalizedPattern == "**":
+		// "**", "/**" and "./**" match every directory (the root is never skipped by the caller)
+		return true
+	case strings.HasSuffix(normalizedPattern, "/**"):
+		// already matches the directory and everything below it
+	case strings.HasSuffix(normalizedPattern, "/"):
+		normalizedPattern += "**"
+	default:
 		return false
 	}
-	prefix := strings.TrimSuffix(pattern, "/")
-	return normalizedPath == prefix || strings.HasPrefix(normalizedPath, prefix+"/")
+	matched, _ := doublestar.Match(normalizedPattern, normalizedPath)
+	return matched
 }
 
 // shouldIgnore checks if a path matches any of the ignore patterns.
 func (f *FilteredFilesystem) shouldIgnore(path string) bool {
-	// Normalize path separators to forward slashes for consistent matching
-	normalizedPath := filepath.ToSlash(path)
+	normalizedPath := normalizePath(path)
 
-	for _, pattern := range f.patterns {
-		pattern = strings.TrimSpace(pattern)
-		if pattern == "" || strings.HasPrefix(pattern, "#") {
+	for _, rawPattern := range f.patterns {
+		rawPattern = strings.TrimSpace(rawPattern)
+		if rawPattern == "" || strings.HasPrefix(rawPattern, "#") {
+			continue
+		}
+		// A pattern containing "/" is anchored.
+		// This has to be decided before the leading "/" is stripped, so
+		// for example "/secret.key" does not match "sub/secret.key".
+		anchored := strings.Contains(rawPattern, "/")
+		pattern := normalizePath(rawPattern)
+		if pattern == "" {
 			continue
 		}
 
-		// If pattern ends with /, it matches directories (i.e., any path with that prefix)
 		if matchesDirPattern(pattern, normalizedPath) {
 			return true
 		}
@@ -128,7 +165,7 @@ func (f *FilteredFilesystem) shouldIgnore(path string) bool {
 		}
 
 		// Also try matching against just the filename (for patterns like "*.tmp")
-		if !strings.Contains(pattern, "/") {
+		if !anchored {
 			base := filepath.Base(normalizedPath)
 			if matched, _ := doublestar.Match(pattern, base); matched {
 				return true
@@ -136,4 +173,17 @@ func (f *FilteredFilesystem) shouldIgnore(path string) bool {
 		}
 	}
 	return false
+}
+
+// warnInvalidPatterns logs patterns that are not valid doublestar globs.
+func warnInvalidPatterns(patterns []string) {
+	for _, rawPattern := range patterns {
+		pattern := strings.TrimSpace(rawPattern)
+		if pattern == "" || strings.HasPrefix(pattern, "#") {
+			continue
+		}
+		if !doublestar.ValidatePattern(normalizePath(pattern)) {
+			log.Warnf("Invalid ignore pattern '%s', escape glob characters '[' ']' '{' '}' '*' '?' with a backslash to match literally", pattern)
+		}
+	}
 }
