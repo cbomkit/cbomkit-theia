@@ -113,31 +113,38 @@ func init() {
 	rootCmd.
 		PersistentFlags().
 		StringSliceVarP(&activatedPlugins, "plugins", "p", scanner.GetAllPluginNames(), "list of plugins to use")
-	err = viper.BindPFlag("plugins", rootCmd.PersistentFlags().Lookup("plugins"))
-	if err != nil {
-		log.Error(err)
-		return
-	}
 
 	// add ignore patterns
 	rootCmd.
 		PersistentFlags().
 		StringSliceVar(&ignorePatterns, "ignore", []string{}, "file path patterns to ignore during scanning (glob syntax, e.g. 'testdata/,*.tmp')")
-	err = viper.BindPFlag("ignore", rootCmd.PersistentFlags().Lookup("ignore"))
-	if err != nil {
-		log.Error(err)
-		return
-	}
 
 	// add log level flag
 	rootCmd.
 		PersistentFlags().
 		StringVar(&logLevel, "log-level", "info", "log level (trace, debug, info, warn, error, fatal, panic)")
-	err = viper.BindPFlag("log_level", rootCmd.PersistentFlags().Lookup("log-level"))
-	if err != nil {
+
+	if err := bindPersistentFlags(); err != nil {
 		log.Error(err)
 		return
 	}
+}
+
+// bindPersistentFlags binds the persistent flags whose value overrides the
+// config file to their viper keys.
+// --ignore is not bound, as it's meant to be additive.
+// Binding it would make the flag replace the config file's "ignore" list,
+// and viper.WriteConfig would save it's value into the config file.
+func bindPersistentFlags() error {
+	for key, flag := range map[string]string{
+		"plugins":   "plugins",
+		"log_level": "log-level",
+	} {
+		if err := viper.BindPFlag(key, rootCmd.PersistentFlags().Lookup(flag)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 const configName = "config"

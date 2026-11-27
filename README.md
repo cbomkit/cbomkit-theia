@@ -160,6 +160,8 @@ ignore:
 cbomkit-theia dir ./myproject --ignore "testdata/,*.tmp,vendor/"
 ```
 
+Unlike other flags such as `--plugins`, `--ignore` does not replace the config file value. Its patterns are added to the patterns from the config file and `.cbomkitignore`.
+
 Patterns support [doublestar](https://github.com/bmatcuk/doublestar) glob syntax (e.g., `**/*.pdf`, `*.tmp`, `dir/`). Lines starting with `#` are treated as comments.
 
 - A pattern without a `/` (e.g., `*.tmp`, `secret.key`) matches the file name at any depth.
