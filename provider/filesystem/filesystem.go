@@ -83,6 +83,11 @@ func (plainFilesystem PlainFilesystem) WalkDirSkipping(fn FilePathAnalysisFunc, 
 		}
 
 		if err != nil {
+			// A path that disappears during walk is skipped, so the process doesn't abort.
+			if goerrors.Is(err, fs.ErrNotExist) && path != plainFilesystem.rootPath {
+				log.WithField("path", path).Warn("Path disappeared during walk, skipping")
+				return nil
+			}
 			return err
 		}
 
