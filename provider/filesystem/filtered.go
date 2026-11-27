@@ -39,7 +39,6 @@ func NewFilteredFilesystem(inner Filesystem, patterns []string) Filesystem {
 	if len(patterns) == 0 {
 		return inner
 	}
-	warnInvalidPatterns(patterns)
 	return &FilteredFilesystem{
 		inner:    inner,
 		patterns: patterns,
@@ -173,17 +172,4 @@ func (f *FilteredFilesystem) shouldIgnore(path string) bool {
 		}
 	}
 	return false
-}
-
-// warnInvalidPatterns logs patterns that are not valid doublestar globs.
-func warnInvalidPatterns(patterns []string) {
-	for _, rawPattern := range patterns {
-		pattern := strings.TrimSpace(rawPattern)
-		if pattern == "" || strings.HasPrefix(pattern, "#") {
-			continue
-		}
-		if !doublestar.ValidatePattern(normalizePath(pattern)) {
-			log.Warnf("Invalid ignore pattern '%s', escape glob characters '[' ']' '{' '}' '*' '?' with a backslash to match literally", pattern)
-		}
-	}
 }

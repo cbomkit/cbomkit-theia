@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bmatcuk/doublestar/v4"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,21 +32,32 @@ const IgnoreFileName = ".cbomkitignore"
 // 1. The .cbomkitignore file in rootPath (if rootPath is non-empty)
 // 2. Config-based patterns (passed in)
 // 3. CLI flag patterns (passed in)
-// Patterns are merged; duplicates are not removed (they are harmless).
+// Patterns are merged, duplicates are removed.
 func LoadIgnorePatterns(rootPath string, configPatterns []string, cliPatterns []string) []string {
 	var patterns []string
+	seen := make(map[string]bool)
+	add := func(source string, candidates []string) {
+		for _, p := range candidates {
+			p = strings.TrimSpace(p)
+			if p == "" || strings.HasPrefix(p, "#") || seen[p] {
+				continue
+			}
+			seen[p] = true
+			if !doublestar.ValidatePattern(normalizePath(p)) {
+				log.Warnf("Invalid ignore pattern '%s' (from %s), escape glob characters '[' ']' '{' '}' '*' '?' '\\' with a backslash to match literally", p, source)
+			}
+			patterns = append(patterns, p)
+		}
+	}
 
 	// Load from .cbomkitignore file if rootPath is provided
 	if rootPath != "" {
-		filePatterns := loadIgnoreFile(filepath.Join(rootPath, IgnoreFileName))
-		patterns = append(patterns, filePatterns...)
+		path := filepath.Join(rootPath, IgnoreFileName)
+		add(path, loadIgnoreFile(path))
 	}
-
-	// Add config patterns
-	patterns = append(patterns, configPatterns...)
-
-	// Add CLI patterns
-	patterns = append(patterns, cliPatterns...)
+	// This is to identify where the patterns came from in the logs.
+	add("config file", configPatterns)
+	add("--ignore flag", cliPatterns)
 
 	return patterns
 }

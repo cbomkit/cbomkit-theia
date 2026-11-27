@@ -37,6 +37,9 @@ func setupTest(t *testing.T) string {
 	// Reset the cobra flag's Changed state
 	flag := rootCmd.PersistentFlags().Lookup("plugins")
 	flag.Changed = false
+	// Reset the ignore flag's value
+	ignorePatterns = []string{}
+	cfgFile = ""
 	return t.TempDir()
 }
 
